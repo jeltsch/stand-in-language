@@ -19,6 +19,69 @@
 
 \usepackage{amsmath}
 
+\newenvironment{mathfigure}[2]
+    {%
+        \begin{figure}
+        \newcommand{\figurelabel}{#1}
+        \newcommand{\figurecaption}{#2}
+        \centering
+        \begin{math}
+    }
+    {
+        \end{math}
+        \caption{\figurecaption}
+        \label{\figurelabel}
+        \end{figure}%
+    }
+
+\newcommand{\bnfdef}{\mathrel{{\mathop:}{\mathop:}{=}}}
+
+\newcommand{\optional}{^?}
+\newcommand{\some}{^+}
+\newcommand{\many}{^*}
+
+\newcommand{\newnt}[1]
+           {\expandafter\newcommand\csname#1\endcsname{\mathit{#1}}}
+
+\newnt{Char}
+\newnt{Letter}
+\newnt{Digit}
+
+\newnt{Ident}
+\newnt{Str}
+\newnt{Nat}
+\newnt{Keyword}
+\newnt{Symbol}
+
+\newnt{Prog}
+\newnt{Assign}
+\newnt{Expr}
+\newnt{Let}
+\newnt{If}
+\newnt{Lam}
+\newnt{CLam}
+\newnt{App}
+\newnt{List}
+\newnt{TNat}
+\newnt{FNat}
+\newnt{Pair}
+\newnt{Left}
+\newnt{Right}
+\newnt{Trace}
+\newnt{Var}
+
+\newcommand{\newkw}[1]
+           {\expandafter\newcommand\csname kw#1\endcsname{\mathbf{#1}}}
+
+\newkw{let}
+\newkw{in}
+\newkw{if}
+\newkw{then}
+\newkw{else}
+\newkw{left}
+\newkw{right}
+\newkw{trace}
+
 \title{Specification of the Stand-in Language}
 \author{%
     Wolfgang Jeltsch\\
@@ -29,5 +92,94 @@
 \begin{document}
 
 \maketitle
+
+\section{Syntax}
+
+We describe the syntax of SIL using a variant of Backus–Naur form. Our
+variant uses the following notations, listed here in increasing order of
+precedence:
+\begin{itemize}
+
+\item
+
+Words in italics are nonterminals.
+
+\item
+
+$∣$ denotes set union.
+
+\item
+
+$∖$ denotes set difference.
+
+\item
+
+Mere juxtaposition denotes concatenation.
+
+\item
+
+$\optional$, $\some$, and $\many$ denote optionality, repetition with at
+least one occurrence, and arbitrary repetition, respectively.
+
+\item
+
+$⟨$~and~$⟩$ delimit subexpressions and are used for overriding default
+precedence.\footnote{We do not use $($ and~$)$ for this purpose, since
+they are part of the language we want to describe.}
+
+\end{itemize}
+
+Figure~\ref{token-syntax-of-sil} defines the syntax of tokens. Based on
+that, Figure~\ref{syntax-of-sil} defines the syntax of the language. The
+nonterminals $\CLam$, $\TNat$, and $\FNat$ stand for “complete lambda”,
+“tuple natural”, and “function natural”, respectively.
+\begin{mathfigure}{token-syntax-of-sil}{Token syntax of SIL}
+%
+\begin{aligned}
+%
+\Ident   & \bnfdef \Letter⟨\Letter ∣ \Digit ∣ \_ ∣ {′}⟩\many ∖
+                   \Keyword                                          \\
+\Str     & \bnfdef \text{“}\Char\many\text{”}                        \\
+\Nat     & \bnfdef \Digit\some                                       \\
+\Keyword & \bnfdef \kwlet ∣ \kwin ∣ \kwif ∣ \kwthen ∣ \kwelse ∣
+                   \kwleft ∣ \kwright ∣ \kwtrace                     \\
+\Symbol  & \bnfdef {(} ∣ {)} ∣ {[} ∣ {]} ∣ {\{} ∣ {\}} ∣ {:} ∣ {=} ∣
+                   \backslash ∣ \# ∣ {→} ∣ {,} ∣ \$
+%
+\end{aligned}
+%
+\end{mathfigure}
+\begin{mathfigure}{syntax-of-sil}{Syntax of SIL}
+%
+\begin{aligned}
+%
+\Prog   & \bnfdef \Assign\some                                       \\
+\Assign & \bnfdef \Ident \; ⟨{:} \; \Expr₀⟩\optional = \Expr₀        \\
+\Expr₀  & \bnfdef \Let ∣ \If ∣ \Lam ∣ \CLam ∣ \Expr₁                 \\
+\Let    & \bnfdef \kwlet \; \Assign\many \; \kwin \; \Expr₀          \\
+\If     & \bnfdef \kwif \; \Expr₀ \; \kwthen \; \Expr₀ \; \kwelse \;
+                  \Expr₀                                             \\
+\Lam    & \bnfdef \backslash \; \Var\some → \Expr₀                   \\
+\CLam   & \bnfdef \# \; \Var\some \to \Expr₀                         \\
+\Expr₁  & \bnfdef \App ∣ \Expr₂                                      \\
+\App    & \bnfdef \Expr₁ \; \Expr₂                                   \\
+\Expr₂  & \bnfdef \List ∣ \Str ∣ \TNat ∣ \FNat ∣ \Pair ∣ \Left ∣
+                  \Right ∣ \Trace ∣ \Var ∣ (\Expr₀)                  \\
+\List   & \bnfdef [] ∣ [\Expr₀ ⟨, \Expr₀⟩\many]                      \\
+\TNat   & \bnfdef \Nat                                               \\
+\FNat   & \bnfdef \$\Nat                                             \\
+\Pair   & \bnfdef \{\Expr₀, \Expr₀\}                                 \\
+\Left   & \bnfdef \kwleft \; \Expr₂                                  \\
+\Right  & \bnfdef \kwright \; \Expr₂                                 \\
+\Trace  & \bnfdef \kwtrace \; \Expr₂                                 \\
+\Var    & \bnfdef \Ident                                             \\
+%
+\end{aligned}
+%
+\end{mathfigure}
+%NOTE: The vertical bars in the grammar source are not the ASCII
+%      character U+007C VERTICAL LINE but the character U+2223 DIVIDES,
+%      which the ucs package translates into \mid. This is important to
+%      get the proper spacing.
 
 \end{document}
