@@ -47,6 +47,7 @@
 \newnt{Letter}
 \newnt{Digit}
 
+\newnt{Token}
 \newnt{Ident}
 \newnt{Str}
 \newnt{Nat}
@@ -137,6 +138,7 @@ nonterminals $\CLam$, $\TNat$, and $\FNat$ stand for “complete lambda”,
 %
 \begin{aligned}
 %
+\Token   & \bnfdef \Ident ∣ \Str ∣ \Nat ∣ \Keyword ∣ \Symbol         \\
 \Ident   & \bnfdef \Letter⟨\Letter ∣ \Digit ∣ \_ ∣ {′}⟩\many ∖
                    \Keyword                                          \\
 \Str     & \bnfdef \text{“}\Char\many\text{”}                        \\
