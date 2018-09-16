@@ -40,6 +40,8 @@
 \newcommand{\some}{^+}
 \newcommand{\many}{^*}
 
+\newcommand{\internal}{_\mathrm{i}}
+
 \newcommand{\newnt}[1]
            {\expandafter\newcommand\csname#1\endcsname{\mathit{#1}}}
 
@@ -71,6 +73,13 @@
 \newnt{Trace}
 \newnt{Var}
 
+\newnt{Zero}
+\newnt{Env}
+\newnt{WithEnv}
+\newnt{Gate}
+\newnt{Defer}
+\newnt{Abort}
+
 \newcommand{\newkw}[1]
            {\expandafter\newcommand\csname kw#1\endcsname{\mathbf{#1}}}
 
@@ -82,6 +91,12 @@
 \newkw{left}
 \newkw{right}
 \newkw{trace}
+
+\newkw{env}
+\newkw{withenv}
+\newkw{gate}
+\newkw{defer}
+\newkw{abort}
 
 \title{Specification of the Stand-in Language}
 \author{%
@@ -96,8 +111,13 @@
 
 \section{Syntax}
 
-We describe the syntax of SIL using a variant of Backus–Naur form. Our
-variant uses the following notations, listed here in increasing order of
+We distinguish between the surface language, which is the actual
+Stand-in Language, and the internal language, which we use for defining
+evaluation. In Section~\ref{desugaring}, we define the translation from
+the surface to the internal language.
+
+We describe all syntax using a variant of Backus–Naur form. Our variant
+uses the following notations, listed here in increasing order of
 precedence:
 \begin{itemize}
 
@@ -130,11 +150,15 @@ they are part of the language we want to describe.}
 
 \end{itemize}
 
-Figure~\ref{token-syntax-of-sil} defines the syntax of tokens. Based on
-that, Figure~\ref{syntax-of-sil} defines the syntax of the language. The
-nonterminals $\CLam$, $\TNat$, and $\FNat$ stand for “complete lambda”,
-“tuple natural”, and “function natural”, respectively.
-\begin{mathfigure}{token-syntax-of-sil}{Token syntax of SIL}
+\subsection{Surface Language}
+
+Figure~\ref{token-syntax-of-the-surface-language} defines the syntax of
+tokens. Based on that, Figure~\ref{syntax-of-the-surface-language}
+defines the syntax of the language. The nonterminals $\CLam$, $\TNat$,
+and $\FNat$ stand for “complete lambda”, “tuple natural”, and “function
+natural”, respectively.
+\begin{mathfigure}{token-syntax-of-the-surface-language}
+                  {Token syntax of the surface language}
 %
 \begin{aligned}
 %
@@ -151,7 +175,8 @@ nonterminals $\CLam$, $\TNat$, and $\FNat$ stand for “complete lambda”,
 \end{aligned}
 %
 \end{mathfigure}
-\begin{mathfigure}{syntax-of-sil}{Syntax of SIL}
+\begin{mathfigure}{syntax-of-the-surface-language}
+                  {Syntax of the surface language}
 %
 \begin{aligned}
 %
@@ -183,5 +208,45 @@ nonterminals $\CLam$, $\TNat$, and $\FNat$ stand for “complete lambda”,
 %      character U+007C VERTICAL LINE but the character U+2223 DIVIDES,
 %      which the ucs package translates into \mid. This is important to
 %      get the proper spacing.
+
+\subsection{Internal Language}
+
+Figure~\ref{token-syntax-of-the-internal-language} defines the syntax of
+tokens. Based on that, Figure~\ref{syntax-of-the-internal-language}
+defines the syntax of the language.
+
+\begin{mathfigure}{token-syntax-of-the-internal-language}
+                  {Token syntax of the internal language}
+%
+\begin{aligned}
+%
+\Token\internal   & \bnfdef \Keyword\internal ∣ \Symbol\internal     \\
+\Keyword\internal & \bnfdef \kwleft ∣ \kwright ∣ \kwenv ∣ \kwwithenv
+                            ∣ \kwgate ∣ \kwdefer ∣ \kwabort ∣
+                            \kwtrace                                 \\
+\Symbol\internal  & \bnfdef ∅ ∣ {\{} ∣ {\}} ∣ {,} ∣ {(} ∣ {)}
+%
+\end{aligned}
+%
+\end{mathfigure}
+\begin{mathfigure}{syntax-of-the-internal-language}
+                  {Syntax of the internal language}
+%
+\begin{aligned}
+%
+\Prog\internal & \bnfdef \Expr\internal                          \\
+\Expr\internal & \bnfdef \Zero ∣ \Pair ∣ \Left ∣ \Right ∣ \Env ∣
+                 \WithEnv ∣ \Gate ∣ \Defer ∣ \Abort ∣ \Trace ∣
+                 (\Expr\internal)                                \\
+\Zero          & \bnfdef ∅                                       \\
+\Env           & \bnfdef \kwenv                                  \\
+\WithEnv       & \bnfdef \kwwithenv \; \Expr\internal            \\
+\Gate          & \bnfdef \kwgate \; \Expr\internal               \\
+\Defer         & \bnfdef \kwdefer \; \Expr\internal              \\
+\Abort         & \bnfdef \kwabort \; \Expr\internal
+%
+\end{aligned}
+%
+\end{mathfigure}
 
 \end{document}
