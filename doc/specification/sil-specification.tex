@@ -42,6 +42,38 @@
 
 \newcommand{\internal}{_\mathrm{i}}
 
+\newcommand{\newkw}[1]
+           {\expandafter\newcommand\csname kw#1\endcsname{\mathbf{#1}}}
+
+\newkw{let}
+\newkw{in}
+\newkw{if}
+\newkw{then}
+\newkw{else}
+\newkw{left}
+\newkw{right}
+\newkw{trace}
+
+\newkw{env}
+\newkw{withenv}
+\newkw{gate}
+\newkw{defer}
+\newkw{abort}
+
+\newcommand{\exlet}[2]{\kwlet \; #1 \; \kwin \; #2}
+\newcommand{\exif}[3]{\kwif \; #1 \; \kwthen \; #2 \; \kwelse \; #3}
+\newcommand{\exlam}[2]{\backslash \; #1 → #2}
+\newcommand{\exclam}[2]{\# \; #1 → #2}
+\newcommand{\exapp}[2]{#1 \; #2}
+\newcommand{\exleft}[1]{\kwleft \; #1}
+\newcommand{\exright}[1]{\kwright \; #1}
+\newcommand{\extrace}[1]{\kwtrace \; #1}
+
+\newcommand{\exwithenv}[1]{\kwwithenv \; #1}
+\newcommand{\exgate}[1]{\kwgate \; #1}
+\newcommand{\exdefer}[1]{\kwdefer \; #1}
+\newcommand{\exabort}[1]{\kwabort \; #1}
+
 \newcommand{\newnt}[1]
            {\expandafter\newcommand\csname#1\endcsname{\mathit{#1}}}
 
@@ -79,24 +111,6 @@
 \newnt{Gate}
 \newnt{Defer}
 \newnt{Abort}
-
-\newcommand{\newkw}[1]
-           {\expandafter\newcommand\csname kw#1\endcsname{\mathbf{#1}}}
-
-\newkw{let}
-\newkw{in}
-\newkw{if}
-\newkw{then}
-\newkw{else}
-\newkw{left}
-\newkw{right}
-\newkw{trace}
-
-\newkw{env}
-\newkw{withenv}
-\newkw{gate}
-\newkw{defer}
-\newkw{abort}
 
 \title{Specification of the Stand-in Language}
 \author{%
@@ -180,26 +194,25 @@ natural”, respectively.
 %
 \begin{aligned}
 %
-\Prog   & \bnfdef \Assign\some                                       \\
-\Assign & \bnfdef \Ident \; ⟨{:} \; \Expr₀⟩\optional = \Expr₀        \\
-\Expr₀  & \bnfdef \Let ∣ \If ∣ \Lam ∣ \CLam ∣ \Expr₁                 \\
-\Let    & \bnfdef \kwlet \; \Assign\many \; \kwin \; \Expr₀          \\
-\If     & \bnfdef \kwif \; \Expr₀ \; \kwthen \; \Expr₀ \; \kwelse \;
-                  \Expr₀                                             \\
-\Lam    & \bnfdef \backslash \; \Var\some → \Expr₀                   \\
-\CLam   & \bnfdef \# \; \Var\some \to \Expr₀                         \\
-\Expr₁  & \bnfdef \App ∣ \Expr₂                                      \\
-\App    & \bnfdef \Expr₁ \; \Expr₂                                   \\
+\Prog   & \bnfdef \Assign\some                                   \\
+\Assign & \bnfdef \Ident \; ⟨{:} \; \Expr₀⟩\optional = \Expr₀    \\
+\Expr₀  & \bnfdef \Let ∣ \If ∣ \Lam ∣ \CLam ∣ \Expr₁             \\
+\Let    & \bnfdef \exlet{\Assign\many}{\Expr₀}                   \\
+\If     & \bnfdef \exif{\Expr₀}{\Expr₀}{\Expr₀}                  \\
+\Lam    & \bnfdef \exlam{\Var\some}{\Expr₀}                      \\
+\CLam   & \bnfdef \exclam{\Var\some}{\Expr₀}                     \\
+\Expr₁  & \bnfdef \App ∣ \Expr₂                                  \\
+\App    & \bnfdef \exapp{\Expr₁}{\Expr₂}                         \\
 \Expr₂  & \bnfdef \List ∣ \Str ∣ \TNat ∣ \FNat ∣ \Pair ∣ \Left ∣
-                  \Right ∣ \Trace ∣ \Var ∣ (\Expr₀)                  \\
-\List   & \bnfdef [] ∣ [\Expr₀ ⟨, \Expr₀⟩\many]                      \\
-\TNat   & \bnfdef \Nat                                               \\
-\FNat   & \bnfdef \$\Nat                                             \\
-\Pair   & \bnfdef \{\Expr₀, \Expr₀\}                                 \\
-\Left   & \bnfdef \kwleft \; \Expr₂                                  \\
-\Right  & \bnfdef \kwright \; \Expr₂                                 \\
-\Trace  & \bnfdef \kwtrace \; \Expr₂                                 \\
-\Var    & \bnfdef \Ident                                             \\
+                  \Right ∣ \Trace ∣ \Var ∣ (\Expr₀)              \\
+\List   & \bnfdef [] ∣ [\Expr₀ ⟨, \Expr₀⟩\many]                  \\
+\TNat   & \bnfdef \Nat                                           \\
+\FNat   & \bnfdef \$\Nat                                         \\
+\Pair   & \bnfdef \{\Expr₀, \Expr₀\}                             \\
+\Left   & \bnfdef \exleft{\Expr₂}                                \\
+\Right  & \bnfdef \exright{\Expr₂}                               \\
+\Trace  & \bnfdef \extrace{\Expr₂}                               \\
+\Var    & \bnfdef \Ident                                         \\
 %
 \end{aligned}
 %
@@ -239,10 +252,10 @@ defines the syntax of the language.
                  (\Expr\internal)                                \\
 \Zero          & \bnfdef ∅                                       \\
 \Env           & \bnfdef \kwenv                                  \\
-\WithEnv       & \bnfdef \kwwithenv \; \Expr\internal            \\
-\Gate          & \bnfdef \kwgate \; \Expr\internal               \\
-\Defer         & \bnfdef \kwdefer \; \Expr\internal              \\
-\Abort         & \bnfdef \kwabort \; \Expr\internal
+\WithEnv       & \bnfdef \exwithenv{\Expr\internal}              \\
+\Gate          & \bnfdef \exgate{\Expr\internal}                 \\
+\Defer         & \bnfdef \exdefer{\Expr\internal}                \\
+\Abort         & \bnfdef \exabort{\Expr\internal}
 %
 \end{aligned}
 %
