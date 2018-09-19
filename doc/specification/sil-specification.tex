@@ -252,16 +252,21 @@ defines the syntax of the language.
 %
 \begin{aligned}
 %
-\Prog\internal & \bnfdef \Expr\internal                              \\
-\Expr\internal & \bnfdef \Zero ∣ \Pair ∣ \Left ∣ \Right ∣ \Env ∣
-                         \WithEnv ∣ \Gate ∣ \Defer ∣ \Abort ∣ \Trace
-                         ∣ (\Expr\internal)                          \\
-\Zero          & \bnfdef ∅                                           \\
-\Env           & \bnfdef \kwenv                                      \\
-\WithEnv       & \bnfdef \exwithenv{\Expr\internal}                  \\
-\Gate          & \bnfdef \exgate{\Expr\internal}                     \\
-\Defer         & \bnfdef \exdefer{\Expr\internal}                    \\
-\Abort         & \bnfdef \exabort{\Expr\internal}
+\Prog\internal  & \bnfdef \Expr\internal                              \\
+\Expr\internal  & \bnfdef \Zero ∣ \Pair\internal ∣ \Left\internal ∣
+                          \Right\internal ∣ \Env ∣ \WithEnv ∣ \Gate ∣
+                          \Defer ∣ \Abort ∣ \Trace\internal ∣
+                          (\Expr\internal)                            \\
+\Zero           & \bnfdef ∅                                           \\
+\Pair\internal  & \bnfdef \{\Expr\internal, \Expr\internal\}          \\
+\Left\internal  & \bnfdef \exleft{\Expr\internal}                     \\
+\Right\internal & \bnfdef \exright{\Expr\internal}                    \\
+\Env            & \bnfdef \kwenv                                      \\
+\WithEnv        & \bnfdef \exwithenv{\Expr\internal}                  \\
+\Gate           & \bnfdef \exgate{\Expr\internal}                     \\
+\Defer          & \bnfdef \exdefer{\Expr\internal}                    \\
+\Abort          & \bnfdef \exabort{\Expr\internal}                    \\
+\Trace\internal & \bnfdef \extrace{\Expr\internal}
 %
 \end{aligned}
 %
