@@ -15,6 +15,8 @@
 
 \SetUnicodeOption{mathletters}
 
+\PreloadUnicodePage{3}
+
 \usepackage{microtype}
 
 \usepackage[hidelinks]{hyperref}
@@ -113,6 +115,8 @@
 \newnt{Gate}
 \newnt{Defer}
 \newnt{Abort}
+
+\newcommand{\suc}[1]{\hat{n}}
 
 \title{Specification of the Stand-in Language}
 \author{%
@@ -258,6 +262,123 @@ defines the syntax of the language.
 \Gate          & \bnfdef \exgate{\Expr\internal}                 \\
 \Defer         & \bnfdef \exdefer{\Expr\internal}                \\
 \Abort         & \bnfdef \exabort{\Expr\internal}
+%
+\end{aligned}
+%
+\end{mathfigure}
+
+\section{Desugaring}
+\label{desugaring}
+
+For defining desugaring, we introduce the following special meta-syntax:
+\begin{itemize}
+
+\item
+
+$⟨e⟩_{x ↦ e′}$ means the expression~$e$ with free occurrences of~$x$
+replaced by~$e′$.
+
+\item
+
+$c_\#$ means the natural number literal that represents the code of the
+character~$c$.
+
+\item
+
+$\suc{n}$ means the natural number literal that represents the successor
+of~$n$.
+
+\item
+
+$f^n x$ means the n-fold application of~$f$ to~$x$, that is,
+$\exapp{f}{\exapp{…}{\exapp{f}{\exapp{x}}}}$ where $f$ occurs $n$~times.
+
+\end{itemize}
+Furthermore we introduce a helper function~$ρ : \Var\some × \Var →
+\Expr\internal$. A term $ρ(Γ, x)$ yields an internal expression that is
+evaluated to a pair whose first element is the value of~$x$. The
+argument~$Γ$ is called a context. A context is a list of variables that
+are in scope, with variables bound closer to the expression being listed
+later. We write $Γ ⊳ x$ for the context~$Γ$ extended by~$x$. The
+definition of~$ρ$ is as follows:
+\begin{equation}
+%
+ρ(Γ ⊳ x, y) = \begin{cases}
+                  \kwenv            & \text{if $x = y$} \\
+                  \exright{ρ(Γ, y)} & \text{if $x ≠ y$}
+              \end{cases}
+%
+\end{equation}
+
+Figure~\ref{desugaring-of-expressions} defines a function $⌊−⌋_− : \Expr
+× \Var\many → \Expr\internal$ that describes desugaring of expressions.
+A term $⌊e⌋_Γ$ gives the internal expression that corresponds to the
+surface expression~$e$ under the context~$Γ$. Based on $⌊−⌋_−$ we define
+a function $⌊−⌋ : \Prog → \Prog\internal$ that describes desugaring of
+programs:
+\begin{equation}
+%
+⌊p⌋ = ⌊\exlet{p}{\mathit{main}}⌋_ε
+%
+\end{equation}
+\begin{mathfigure}{desugaring-of-expressions}{Desugaring of expressions}
+%
+\newcommand{\nextline}{\\ & \mathrel{\phantom{=}}}
+\newcommand{\exapprhs}{
+    \kwwithenv
+    \nextline
+    \quad \kwwithenv \; \{
+    \nextline
+    \quad\quad \exdefer{
+                   \{
+                       \exleft{\exright{\kwenv}},
+                       \{\exleft{\kwenv}, \exright{\exright{\kwenv}}\}
+                   \}
+               },
+    \nextline
+    \quad\quad \{⌊e₂⌋_Γ, ⌊e₁⌋_Γ\}
+    \nextline
+    \quad \}
+}
+%
+\begin{aligned}
+%
+⌊\kwlet \; \kwin \; e⌋_Γ         & = ⌊e⌋_Γ                            \\
+⌊\exlet{x = e′ \; \bar{a}}{e}⌋_Γ & = ⌊
+                                         ⟨\exlet{\bar{a}}{e}⟩
+                                             _{x ↦ e′}
+                                     ⌋_Γ \\
+⌊\exif{e}{e₁}{e₂}⌋_Γ             & = \exwithenv{
+                                         \{
+                                             \exgate{⌊e⌋_Γ},
+                                             \{⌊e₁⌋_Γ, ⌊e₂⌋_Γ\}
+                                         \}
+                                     }                                \\
+⌊\exlam{\bar{x}}{e}⌋_Γ           & = \{
+                                         \exdefer{⌊e⌋_{Γ ∘ \bar{x}}},
+                                         \kwenv
+                                     \}                               \\
+⌊\exclam{\bar{x}}{e}⌋_Γ          & = \{
+                                         \exdefer{⌊e⌋_{\bar{x}}},
+                                         ∅
+                                     \}                               \\
+⌊\exapp{e₁}{e₂}⌋_Γ               & = \exapprhs                        \\
+⌊[]⌋_Γ                           & = ∅                                \\
+⌊[e, l]⌋_Γ                       & = \{⌊e⌋_Γ, ⌊[l]⌋_Γ\}               \\
+⌊\text{“}\,\text{”}⌋_Γ           & = ∅                                \\
+⌊\text{“}c\bar{c}\text{”}⌋_Γ     & = \{
+                                         ⌊c_\#⌋_Γ,
+                                         ⌊\text{“}\bar{c}\text{”}⌋_Γ
+                                     \}  \\
+⌊0⌋_Γ                            & = ∅                                \\
+⌊\suc{n}⌋_Γ                      & = \{⌊n⌋_Γ, ∅\}                     \\
+⌊\${n}⌋_Γ                        & = ⌊\exclam{f \; x}{f^n x}⌋_Γ       \\
+⌊\{e₁, e₂\}⌋_Γ                   & = \{⌊e₁⌋_Γ, ⌊e₂⌋_Γ\}               \\
+⌊\exleft{e}⌋_Γ                   & = \exleft{⌊e⌋_Γ}                   \\
+⌊\exright{e}⌋_Γ                  & = \exright{⌊e⌋_Γ}                  \\
+⌊\extrace{e}⌋_Γ                  & = \extrace{⌊e⌋_Γ}                  \\
+⌊x⌋_Γ                            & = \exleft{ρ(Γ, x)}                 \\
+⌊(e)⌋_Γ                          & = ⌊e⌋_Γ
 %
 \end{aligned}
 %
