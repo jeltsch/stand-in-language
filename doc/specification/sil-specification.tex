@@ -252,15 +252,15 @@ defines the syntax of the language.
 %
 \begin{aligned}
 %
-\Prog\internal & \bnfdef \Expr\internal                          \\
+\Prog\internal & \bnfdef \Expr\internal                              \\
 \Expr\internal & \bnfdef \Zero ∣ \Pair ∣ \Left ∣ \Right ∣ \Env ∣
-                 \WithEnv ∣ \Gate ∣ \Defer ∣ \Abort ∣ \Trace ∣
-                 (\Expr\internal)                                \\
-\Zero          & \bnfdef ∅                                       \\
-\Env           & \bnfdef \kwenv                                  \\
-\WithEnv       & \bnfdef \exwithenv{\Expr\internal}              \\
-\Gate          & \bnfdef \exgate{\Expr\internal}                 \\
-\Defer         & \bnfdef \exdefer{\Expr\internal}                \\
+                         \WithEnv ∣ \Gate ∣ \Defer ∣ \Abort ∣ \Trace
+                         ∣ (\Expr\internal)                          \\
+\Zero          & \bnfdef ∅                                           \\
+\Env           & \bnfdef \kwenv                                      \\
+\WithEnv       & \bnfdef \exwithenv{\Expr\internal}                  \\
+\Gate          & \bnfdef \exgate{\Expr\internal}                     \\
+\Defer         & \bnfdef \exdefer{\Expr\internal}                    \\
 \Abort         & \bnfdef \exabort{\Expr\internal}
 %
 \end{aligned}
