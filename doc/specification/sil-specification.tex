@@ -17,6 +17,8 @@
 
 \PreloadUnicodePage{3}
 
+\DeclareMathSymbol{.}{\mathrel}{letters}{"3A}
+
 \usepackage{microtype}
 
 \usepackage[hidelinks]{hyperref}
@@ -117,6 +119,11 @@
 \newcommand{\internal}{_\mathrm{i}}
 
 \newcommand{\suc}[1]{\hat{n}}
+
+\newcommand{\deriv}[2]{\frac{\;#1\;}{\;#2\;}}
+\newcommand{\nextderivline}{\\[\topsep]}
+\newcommand{\morederivs}{\qquad}
+\newcommand{\nexthyp}{\quad}
 
 \title{Specification of the Stand-in Language}
 \author{%
@@ -386,6 +393,95 @@ programs:
 ⌊(e)⌋_Γ                          & = ⌊e⌋_Γ
 %
 \end{aligned}
+%
+\end{mathfigure}
+
+\section{Operational Semantics}
+
+Evaluation of an expression happens in the context of an environment,
+which is an expression itself. The environment can be read using
+$\kwenv$ and set using $\kwwithenv$.
+
+Figure~\ref{operational-semantics} defines a relation ${−} ⊢ {−} → {−} ⊆
+\Expr × \Expr × \Expr$ that constitutes the big-step (evaluation)
+semantics of the internal language. A proposition $ℰ ⊢ e → e′$ is true
+if and only if evaluating the expression~$e$ under the environment~$ℰ$
+may yield the expression~$e′$. The semantics only covers the pure
+aspects of execution. The $\kwtrace$ construct is actually impure, as it
+outputs diagnostic information. Our semantics ignores that, treating any
+expression of the form $\extrace{e}$ like~$e$.
+
+The following things about the big-step semantics should be noted:
+\begin{itemize}
+
+\item
+
+The relation ${−} ⊢ {−} → {−}$ is actually a partial function. This
+means that evaluation is deterministic: it either fails or leads to a
+uniquely defined expression.
+
+\item
+
+Evaluation does not necessarily lead to irreducible expressions. There
+exist environments~$ℰ$ and expressions $e$, $e′$, and~$e″$ for which $ℰ
+⊢ e → e′$ and $ℰ ⊢ e′ → e″$ but $e′ ≠ e″$. For example, $ℰ ⊢
+\exdefer{\exdefer{e}} → \exdefer{e}$ and $ℰ ⊢ \exdefer{e} → e$ for any
+environment~$ℰ$ and any expression~$e$.
+
+\end{itemize}
+\begin{mathfigure}{operational-semantics}{Operational Semantics}
+%
+\begin{gathered}
+%
+\deriv{}
+      {ℰ ⊢ ∅ → ∅}
+\nextderivline
+\deriv{ℰ ⊢ e₁ → e₁′ \nexthyp ℰ ⊢ e₂ → e₂′}
+      {ℰ ⊢ \{e₁, e₂\} → \{e₁′, e₂′\}}
+\nextderivline
+\begin{gathered}
+%
+\deriv{ℰ ⊢ e → \{e₁, e₂\}}
+      {ℰ ⊢ \exleft{e} → e₁}
+\nextderivline
+\deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
+      {ℰ ⊢ \exleft{e} → ∅}
+%
+\end{gathered}
+\morederivs
+\begin{gathered}
+%
+\deriv{ℰ ⊢ e → \{e₁, e₂\}}
+      {ℰ ⊢ \exright{e} → e₂}
+\nextderivline
+\deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
+      {ℰ ⊢ \exright{e} → ∅}
+%
+\end{gathered}
+\nextderivline
+\deriv{}
+      {ℰ ⊢ \kwenv → ℰ}
+\nextderivline
+\deriv{ℰ ⊢ e → \{e′, ℰ′\} \nexthyp ℰ′ ⊢ e′ → e″}
+      {ℰ ⊢ \exwithenv{e} → e″}
+\nextderivline
+\deriv{ℰ ⊢ e → ∅}
+      {ℰ ⊢ \exgate{e} → \exleft{\kwenv}}
+\morederivs
+\deriv{ℰ ⊢ e → e′ \nexthyp e′ ≠ ∅}
+      {ℰ ⊢ \exgate{e} → \exright{\kwenv}}
+\nextderivline
+\deriv{}
+      {ℰ ⊢ \exdefer{e} → e}
+\nextderivline
+\deriv{ℰ ⊢ e → ∅}
+      {ℰ ⊢ \exabort{e} → ∅}
+\nextderivline
+\deriv{ℰ ⊢ e → e′}
+      {ℰ ⊢ \extrace{e} → e′}
+\nextderivline
+%
+\end{gathered}
 %
 \end{mathfigure}
 
