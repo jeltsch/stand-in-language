@@ -46,6 +46,11 @@
 \newcommand{\some}{^+}
 \newcommand{\many}{^*}
 
+\newcommand{\deriv}[2]{\frac{\;#1\;}{\;#2\;}}
+\newcommand{\derivlinedone}{\\[\topsep]}
+\newcommand{\morederivs}{\qquad}
+\newcommand{\nexthyp}{\quad}
+
 \newcommand{\newkw}[1]
            {\expandafter\newcommand\csname kw#1\endcsname{\mathbf{#1}}}
 
@@ -119,11 +124,6 @@
 \newcommand{\internal}{_\mathrm{i}}
 
 \newcommand{\suc}[1]{\hat{n}}
-
-\newcommand{\deriv}[2]{\frac{\;#1\;}{\;#2\;}}
-\newcommand{\derivlinedone}{\\[\topsep]}
-\newcommand{\morederivs}{\qquad}
-\newcommand{\nexthyp}{\quad}
 
 \title{Specification of the Stand-in Language}
 \author{%
