@@ -121,7 +121,7 @@
 \newcommand{\suc}[1]{\hat{n}}
 
 \newcommand{\deriv}[2]{\frac{\;#1\;}{\;#2\;}}
-\newcommand{\nextderivline}{\\[\topsep]}
+\newcommand{\derivlinedone}{\\[\topsep]}
 \newcommand{\morederivs}{\qquad}
 \newcommand{\nexthyp}{\quad}
 
@@ -441,15 +441,15 @@ environment~$ℰ$ and any expression~$e$.
 %
 \deriv{}
       {ℰ ⊢ ∅ → ∅}
-\nextderivline
+\derivlinedone
 \deriv{ℰ ⊢ e₁ → e₁′ \nexthyp ℰ ⊢ e₂ → e₂′}
       {ℰ ⊢ \{e₁, e₂\} → \{e₁′, e₂′\}}
-\nextderivline
+\derivlinedone
 \begin{gathered}
 %
 \deriv{ℰ ⊢ e → \{e₁, e₂\}}
       {ℰ ⊢ \exleft{e} → e₁}
-\nextderivline
+\derivlinedone
 \deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
       {ℰ ⊢ \exleft{e} → ∅}
 %
@@ -459,33 +459,33 @@ environment~$ℰ$ and any expression~$e$.
 %
 \deriv{ℰ ⊢ e → \{e₁, e₂\}}
       {ℰ ⊢ \exright{e} → e₂}
-\nextderivline
+\derivlinedone
 \deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
       {ℰ ⊢ \exright{e} → ∅}
 %
 \end{gathered}
-\nextderivline
+\derivlinedone
 \deriv{}
       {ℰ ⊢ \kwenv → ℰ}
-\nextderivline
+\derivlinedone
 \deriv{ℰ ⊢ e → \{e′, ℰ′\} \nexthyp ℰ′ ⊢ e′ → e″}
       {ℰ ⊢ \exwithenv{e} → e″}
-\nextderivline
+\derivlinedone
 \deriv{ℰ ⊢ e → ∅}
       {ℰ ⊢ \exgate{e} → \exleft{\kwenv}}
 \morederivs
 \deriv{ℰ ⊢ e → e′ \nexthyp e′ ≠ ∅}
       {ℰ ⊢ \exgate{e} → \exright{\kwenv}}
-\nextderivline
+\derivlinedone
 \deriv{}
       {ℰ ⊢ \exdefer{e} → e}
-\nextderivline
+\derivlinedone
 \deriv{ℰ ⊢ e → ∅}
       {ℰ ⊢ \exabort{e} → ∅}
-\nextderivline
+\derivlinedone
 \deriv{ℰ ⊢ e → e′}
       {ℰ ⊢ \extrace{e} → e′}
-\nextderivline
+\derivlinedone
 %
 \end{gathered}
 %
