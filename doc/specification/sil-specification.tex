@@ -266,16 +266,16 @@ defines the syntax of the language.
 \begin{aligned}
 %
 \Prog\internal  & \bnfdef \Expr\internal                              \\
-\Expr\internal  & \bnfdef \Zero ∣ \Pair\internal ∣ \Left\internal ∣
-                          \Right\internal ∣ \Env ∣ \WithEnv ∣ \Gate ∣
-                          \Defer ∣ \Abort ∣ \Trace\internal ∣
+\Expr\internal  & \bnfdef \Pair\internal ∣ \Left\internal ∣
+                          \Right\internal ∣ \Zero ∣ \Env ∣ \WithEnv ∣
+                          \Gate ∣ \Defer ∣ \Abort ∣ \Trace\internal ∣
                           (\Expr\internal)                            \\
-\Zero           & \bnfdef ∅                                           \\
 \Pair\internal  & \bnfdef \{\Expr\internal, \Expr\internal\}          \\
 \Left\internal  & \bnfdef \exleft{\Expr\internal}                     \\
 \Right\internal & \bnfdef \exright{\Expr\internal}                    \\
-\Env            & \bnfdef \kwenv                                      \\
+\Zero           & \bnfdef ∅                                           \\
 \WithEnv        & \bnfdef \exwithenv{\Expr\internal}                  \\
+\Env            & \bnfdef \kwenv                                      \\
 \Gate           & \bnfdef \exgate{\Expr\internal}                     \\
 \Defer          & \bnfdef \exdefer{\Expr\internal}                    \\
 \Abort          & \bnfdef \exabort{\Expr\internal}                    \\
@@ -439,9 +439,6 @@ environment~$ℰ$ and any expression~$e$.
 %
 \begin{gathered}
 %
-\deriv{}
-      {ℰ ⊢ ∅ → ∅}
-\derivlinedone
 \deriv{ℰ ⊢ e₁ → e₁′ \nexthyp ℰ ⊢ e₂ → e₂′}
       {ℰ ⊢ \{e₁, e₂\} → \{e₁′, e₂′\}}
 \derivlinedone
@@ -466,10 +463,13 @@ environment~$ℰ$ and any expression~$e$.
 \end{gathered}
 \derivlinedone
 \deriv{}
-      {ℰ ⊢ \kwenv → ℰ}
+      {ℰ ⊢ ∅ → ∅}
 \derivlinedone
 \deriv{ℰ ⊢ e → \{e′, ℰ′\} \nexthyp ℰ′ ⊢ e′ → e″}
       {ℰ ⊢ \exwithenv{e} → e″}
+\derivlinedone
+\deriv{}
+      {ℰ ⊢ \kwenv → ℰ}
 \derivlinedone
 \deriv{ℰ ⊢ e → ∅}
       {ℰ ⊢ \exgate{e} → \exleft{\kwenv}}
