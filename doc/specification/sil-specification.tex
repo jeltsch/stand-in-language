@@ -465,8 +465,8 @@ environment~$ℰ$ and any expression~$e$.
 \deriv{}
       {ℰ ⊢ ∅ → ∅}
 \derivlinedone
-\deriv{ℰ ⊢ e → \{e′, ℰ′\} \nexthyp ℰ′ ⊢ e′ → e″}
-      {ℰ ⊢ \exwithenv{e} → e″}
+\deriv{ℰ ⊢ e → \{e₁, e₂\} \nexthyp e₂ ⊢ e₁ → e′}
+      {ℰ ⊢ \exwithenv{e} → e′}
 \derivlinedone
 \deriv{}
       {ℰ ⊢ \kwenv → ℰ}
