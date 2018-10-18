@@ -313,25 +313,25 @@ $\exapp{f}{\exapp{…}{\exapp{f}{\exapp{x}}}}$ where $f$ occurs $n$~times.
 
 \end{itemize}
 Furthermore we introduce a helper function~$ρ : \Var\some × \Var →
-\Expr\internal$. A term $ρ(Γ, x)$ yields an internal expression that is
+\Expr\internal$. A term $ρ(Δ, x)$ yields an internal expression that is
 evaluated to a pair whose first element is the value of~$x$. The
-argument~$Γ$ is called a context. A context is a list of variables that
+argument~$Δ$ is called a context. A context is a list of variables that
 are in scope, with variables bound closer to the expression being listed
-later. We write $Γ ⊳ x$ for the context~$Γ$ extended by~$x$. The
+later. We write $Δ ⊳ x$ for the context~$Δ$ extended by~$x$. The
 definition of~$ρ$ is as follows:
 \begin{equation}
 %
-ρ(Γ ⊳ x, y) = \begin{cases}
+ρ(Δ ⊳ x, y) = \begin{cases}
                   \kwenv            & \text{if $x = y$} \\
-                  \exright{ρ(Γ, y)} & \text{if $x ≠ y$}
+                  \exright{ρ(Δ, y)} & \text{if $x ≠ y$}
               \end{cases}
 %
 \end{equation}
 
 Figure~\ref{desugaring-of-expressions} defines a function $⌊−⌋_− : \Expr
 × \Var\many → \Expr\internal$ that describes desugaring of expressions.
-A term $⌊e⌋_Γ$ gives the internal expression that corresponds to the
-surface expression~$e$ under the context~$Γ$. Based on $⌊−⌋_−$ we define
+A term $⌊e⌋_Δ$ gives the internal expression that corresponds to the
+surface expression~$e$ under the context~$Δ$. Based on $⌊−⌋_−$ we define
 a function $⌊−⌋ : \Prog → \Prog\internal$ that describes desugaring of
 programs:
 \begin{equation}
@@ -354,49 +354,49 @@ programs:
                    \}
                },
     \nextline
-    \quad\quad \{⌊e₂⌋_Γ, ⌊e₁⌋_Γ\}
+    \quad\quad \{⌊e₂⌋_Δ, ⌊e₁⌋_Δ\}
     \nextline
     \quad \}
 }
 %
 \begin{aligned}
 %
-⌊\kwlet \; \kwin \; e⌋_Γ         & = ⌊e⌋_Γ                            \\
-⌊\exlet{x = e′ \; \bar{a}}{e}⌋_Γ & = ⌊
+⌊\kwlet \; \kwin \; e⌋_Δ         & = ⌊e⌋_Δ                            \\
+⌊\exlet{x = e′ \; \bar{a}}{e}⌋_Δ & = ⌊
                                          ⟨\exlet{\bar{a}}{e}⟩
                                              _{x ↦ e′}
-                                     ⌋_Γ \\
-⌊\exif{e}{e₁}{e₂}⌋_Γ             & = \exwithenv{
+                                     ⌋_Δ \\
+⌊\exif{e}{e₁}{e₂}⌋_Δ             & = \exwithenv{
                                          \{
-                                             \exgate{⌊e⌋_Γ},
-                                             \{⌊e₁⌋_Γ, ⌊e₂⌋_Γ\}
+                                             \exgate{⌊e⌋_Δ},
+                                             \{⌊e₁⌋_Δ, ⌊e₂⌋_Δ\}
                                          \}
                                      }                                \\
-⌊\exlam{\bar{x}}{e}⌋_Γ           & = \{
-                                         \exdefer{⌊e⌋_{Γ ∘ \bar{x}}},
+⌊\exlam{\bar{x}}{e}⌋_Δ           & = \{
+                                         \exdefer{⌊e⌋_{Δ ∘ \bar{x}}},
                                          \kwenv
                                      \}                               \\
-⌊\exclam{\bar{x}}{e}⌋_Γ          & = \{
+⌊\exclam{\bar{x}}{e}⌋_Δ          & = \{
                                          \exdefer{⌊e⌋_{\bar{x}}},
                                          ∅
                                      \}                               \\
-⌊\exapp{e₁}{e₂}⌋_Γ               & = \exapprhs                        \\
-⌊[]⌋_Γ                           & = ∅                                \\
-⌊[e, l]⌋_Γ                       & = \{⌊e⌋_Γ, ⌊[l]⌋_Γ\}               \\
-⌊\text{“}\,\text{”}⌋_Γ           & = ∅                                \\
-⌊\text{“}c\bar{c}\text{”}⌋_Γ     & = \{
-                                         ⌊c_\#⌋_Γ,
-                                         ⌊\text{“}\bar{c}\text{”}⌋_Γ
+⌊\exapp{e₁}{e₂}⌋_Δ               & = \exapprhs                        \\
+⌊[]⌋_Δ                           & = ∅                                \\
+⌊[e, l]⌋_Δ                       & = \{⌊e⌋_Δ, ⌊[l]⌋_Δ\}               \\
+⌊\text{“}\,\text{”}⌋_Δ           & = ∅                                \\
+⌊\text{“}c\bar{c}\text{”}⌋_Δ     & = \{
+                                         ⌊c_\#⌋_Δ,
+                                         ⌊\text{“}\bar{c}\text{”}⌋_Δ
                                      \}  \\
-⌊0⌋_Γ                            & = ∅                                \\
-⌊\suc{n}⌋_Γ                      & = \{⌊n⌋_Γ, ∅\}                     \\
-⌊\${n}⌋_Γ                        & = ⌊\exclam{f \; x}{f^n x}⌋_Γ       \\
-⌊\{e₁, e₂\}⌋_Γ                   & = \{⌊e₁⌋_Γ, ⌊e₂⌋_Γ\}               \\
-⌊\exleft{e}⌋_Γ                   & = \exleft{⌊e⌋_Γ}                   \\
-⌊\exright{e}⌋_Γ                  & = \exright{⌊e⌋_Γ}                  \\
-⌊\extrace{e}⌋_Γ                  & = \extrace{⌊e⌋_Γ}                  \\
-⌊x⌋_Γ                            & = \exleft{ρ(Γ, x)}                 \\
-⌊(e)⌋_Γ                          & = ⌊e⌋_Γ
+⌊0⌋_Δ                            & = ∅                                \\
+⌊\suc{n}⌋_Δ                      & = \{⌊n⌋_Δ, ∅\}                     \\
+⌊\${n}⌋_Δ                        & = ⌊\exclam{f \; x}{f^n x}⌋_Δ       \\
+⌊\{e₁, e₂\}⌋_Δ                   & = \{⌊e₁⌋_Δ, ⌊e₂⌋_Δ\}               \\
+⌊\exleft{e}⌋_Δ                   & = \exleft{⌊e⌋_Δ}                   \\
+⌊\exright{e}⌋_Δ                  & = \exright{⌊e⌋_Δ}                  \\
+⌊\extrace{e}⌋_Δ                  & = \extrace{⌊e⌋_Δ}                  \\
+⌊x⌋_Δ                            & = \exleft{ρ(Δ, x)}                 \\
+⌊(e)⌋_Δ                          & = ⌊e⌋_Δ
 %
 \end{aligned}
 %
