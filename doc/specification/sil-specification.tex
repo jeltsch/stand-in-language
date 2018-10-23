@@ -123,6 +123,12 @@
 
 \newcommand{\internal}{_\mathrm{i}}
 
+\newnt{Type}
+\newnt{TypeVar}
+\newnt{ZeroType}
+\newnt{PairType}
+\newnt{FunType}
+
 \newcommand{\suc}[1]{\hat{n}}
 
 \title{Specification of the Stand-in Language}
@@ -332,6 +338,85 @@ Note that $\kwdefer$ expressions cannot use arguments of surrounding
 function expression, as the only way to refer to function arguments is
 via $\kwenv$, which always denotes the innermost argument. This means
 that the internal language cannot handle closures natively.
+
+\subsection{Type System}
+
+Figure~\ref{type-syntax} defines the syntax of types. Based on that,
+Figure~\ref{equivalence-of-types} defines an equivalence relation on
+types that identifies all nested pair types. Finally,
+Figure~\ref{typing-rules} defines the typing relation ${−} ⊢ {−} : {−} ⊆
+\Type × \Expr × \Type$. A proposition $𝒯 ⊢ e : τ$ is true if and only if
+the expression~$e$ has type~$τ$ provided that the environment has
+type~$𝒯$. Note that the last typing rule establishes that each nested
+pair type contains all nested pairs, even those that have a different
+structure than the type.
+\begin{mathfigure}{type-syntax}{Type syntax}
+%
+\begin{aligned}
+%
+\Type     & \bnfdef \Type₀                                        \\
+\Type₀    & \bnfdef \FunType ∣ \Type₁                             \\
+\FunType  & \bnfdef \Type₁ ⇒ \Type₀                               \\
+\Type₁    & \bnfdef \PairType ∣ \ZeroType ∣ \TypeVar ∣ (\Type₀)   \\
+\PairType & \bnfdef \{\Type₀, \Type₀\}                            \\
+\ZeroType & \bnfdef ∅                                             \\
+\TypeVar  & \bnfdef \Letter
+%
+\end{aligned}
+%
+\end{mathfigure}
+\begin{mathfigure}{equivalence-of-types}{Equivalence of types}
+%
+\begin{gathered}
+%
+\deriv{}{∅ ≈ \{∅, ∅\}}
+\derivlinedone
+\deriv{τ₁ ≈ τ₁′ \nexthyp τ₂ ≈ τ₂'}{τ₁ ⇒ τ₂ ≈ τ₁′ ⇒ τ₂′}
+\morederivs
+\deriv{τ₁ ≈ τ₁′ \nexthyp τ₂ ≈ τ₂'}{\{τ₁, τ₂\} ≈ \{τ₁′, τ₂′\}}
+\morederivs
+\deriv{}{∅ ≈ ∅}
+\morederivs
+\deriv{α ∈ \TypeVar}{α ≈ α}
+\derivlinedone
+\deriv{τ₁ ≈ τ₂}{τ₂ ≈ τ₁}
+\morederivs
+\deriv{τ₁ ≈ τ₂ \nexthyp τ₂ ≈ τ₃}{τ₁ ≈ τ₃}
+\derivlinedone
+%
+\end{gathered}
+%
+\end{mathfigure}
+\begin{mathfigure}{typing-rules}{Typing rules}
+%
+\begin{gathered}
+%
+\deriv{𝒯 ⊢ e₁ : τ₁ \nexthyp 𝒯 ⊢ e₂ : τ₂}{𝒯 ⊢ \{e₁, e₂\} : \{τ₁, τ₂\}}
+\derivlinedone
+\deriv{𝒯 ⊢ e : \{τ₁, τ₂\}}{𝒯 ⊢ \exleft{e} : τ₁}
+\morederivs
+\deriv{𝒯 ⊢ e : \{τ₁, τ₂\}}{𝒯 ⊢ \exright{e} : τ₂}
+\derivlinedone
+\deriv{}{𝒯 ⊢ ∅ : ∅}
+\derivlinedone
+\deriv{𝒯 ⊢ e : \{τ₁ ⇒ τ₂, τ₁\}}{𝒯 ⊢ \exwithenv{e} : τ₂}
+\derivlinedone
+\deriv{}{𝒯 ⊢ \kwenv : 𝒯}
+\derivlinedone
+\deriv{𝒯 ⊢ e : ∅}{𝒯 ⊢ \exgate{e} : \{τ, τ\} ⇒ τ}
+\derivlinedone
+\deriv{τ₁ ⊢ e : τ₂}{𝒯 ⊢ \exdefer{e} : τ₁ ⇒ τ₂}
+\derivlinedone
+\deriv{𝒯 ⊢ e : ∅}{𝒯 ⊢ \exabort{e} : ∅}
+\derivlinedone
+\deriv{𝒯 ⊢ e : τ}{𝒯 ⊢ \extrace{e} : τ}
+\derivlinedone
+\deriv{τ₁ ≈ τ₂ \nexthyp Γ ⊢ e : τ₁}{Γ ⊢ e : τ₂}
+\derivlinedone
+%
+\end{gathered}
+%
+\end{mathfigure}
 
 \section{Surface Language}
 
