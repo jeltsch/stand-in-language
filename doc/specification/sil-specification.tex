@@ -138,20 +138,20 @@
 
 \section{Introduction}
 
-We present a formal specification of the Stand-in Language by Sam
+We present a formal specification of the Stand-in Language (SIL) by Sam
 Griffin. Our specification closely resembles the version of the language
 implemented in Commit \texttt{966227a} of the
 \texttt{sfultong/stand-in-language} GitHub repository.
 
-\section{Syntax}
+SIL actually consists of two languages: the surface language and the
+internal language. While the former constitutes the user-facing part,
+the latter is the one for which evaluation is defined.
 
-We distinguish between the surface language and the internal language.
-In Section~\ref{desugaring}, we define the translation from the former
-to the latter.
+\section{Notation}
 
-We describe all syntax using a variant of Backus–Naur form. Our variant
-uses the following notations, listed here in increasing order of
-precedence:
+Throughout this document, we describe syntax using a variant of
+Backus–Naur form. Our variant uses the following notations, listed here
+in increasing order of precedence:
 \begin{itemize}
 
 \item
@@ -179,11 +179,166 @@ least one occurrence, and arbitrary repetition, respectively.
 
 $⟨$~and~$⟩$ delimit subexpressions and are used for overriding default
 precedence.\footnote{We do not use $($ and~$)$ for this purpose, since
-they are part of the languages we want to describe.}
+they are part of some of the languages we want to describe.}
 
 \end{itemize}
 
-\subsection{Surface Language}
+We introduce further custom notations for various things unrelated to
+syntax. Since such notations are tied to specific parts of the
+specification, we define them where they are needed.
+
+\section{Internal Language}
+
+The internal language is a low-level language, which in particular has
+no built-in support for closures. It comes with an operational semantics
+and a type system.
+
+\subsection{Syntax}
+
+Figure~\ref{token-syntax-of-the-internal-language} defines the syntax of
+tokens. Based on that, Figure~\ref{syntax-of-the-internal-language}
+defines the syntax of the language.
+\begin{mathfigure}{token-syntax-of-the-internal-language}
+                  {Token syntax of the internal language}
+%
+\begin{aligned}
+%
+\Token\internal   & \bnfdef \Keyword\internal ∣ \Symbol\internal     \\
+\Keyword\internal & \bnfdef \kwleft ∣ \kwright ∣ \kwenv ∣ \kwwithenv
+                            ∣ \kwgate ∣ \kwdefer ∣ \kwabort ∣
+                            \kwtrace                                 \\
+\Symbol\internal  & \bnfdef ∅ ∣ {\{} ∣ {\}} ∣ {,} ∣ {(} ∣ {)}
+%
+\end{aligned}
+%
+\end{mathfigure}
+\begin{mathfigure}{syntax-of-the-internal-language}
+                  {Syntax of the internal language}
+%
+\begin{aligned}
+%
+\Prog\internal    & \bnfdef \Expr\internal                      \\
+\Expr\internal    & \bnfdef \Pair\internal ∣ \Left\internal ∣
+                            \Right\internal ∣ \Zero\internal ∣
+                            \Env\internal ∣ \WithEnv\internal ∣
+                            \Gate\internal ∣ \Defer\internal ∣
+                            \Abort\internal ∣ \Trace\internal ∣
+                            (\Expr\internal)                    \\
+\Pair\internal    & \bnfdef \{\Expr\internal, \Expr\internal\}  \\
+\Left\internal    & \bnfdef \exleft{\Expr\internal}             \\
+\Right\internal   & \bnfdef \exright{\Expr\internal}            \\
+\Zero\internal    & \bnfdef ∅                                   \\
+\WithEnv\internal & \bnfdef \exwithenv{\Expr\internal}          \\
+\Env\internal     & \bnfdef \kwenv                              \\
+\Gate\internal    & \bnfdef \exgate{\Expr\internal}             \\
+\Defer\internal   & \bnfdef \exdefer{\Expr\internal}            \\
+\Abort\internal   & \bnfdef \exabort{\Expr\internal}            \\
+\Trace\internal   & \bnfdef \extrace{\Expr\internal}
+%
+\end{aligned}
+%
+\end{mathfigure}
+
+\subsection{Operational Semantics}
+
+Evaluation of an expression happens in the context of an environment,
+which is an expression itself. The environment can be read using
+$\kwenv$ and set using $\kwwithenv$.
+
+Figure~\ref{operational-semantics} defines a relation ${−} ⊢ {−} → {−} ⊆
+\Expr × \Expr × \Expr$ that constitutes the big-step (evaluation)
+semantics of the internal language. A proposition $ℰ ⊢ e → e′$ is true
+if and only if evaluating the expression~$e$ under the environment~$ℰ$
+may yield the expression~$e′$. The semantics only covers the pure
+aspects of execution. The $\kwtrace$ construct is actually impure, as it
+outputs diagnostic information. Our semantics ignores that, treating any
+expression of the form $\extrace{e}$ like~$e$.
+
+The following things about the big-step semantics should be noted:
+\begin{itemize}
+
+\item
+
+The relation ${−} ⊢ {−} → {−}$ is actually a partial function. This
+means that evaluation is deterministic: it either fails or leads to a
+uniquely defined expression.
+
+\item
+
+Evaluation does not necessarily lead to irreducible expressions. There
+exist environments~$ℰ$ and expressions $e$, $e′$, and~$e″$ for which $ℰ
+⊢ e → e′$ and $ℰ ⊢ e′ → e″$ but $e′ ≠ e″$. For example, $ℰ ⊢
+\exdefer{\exdefer{e}} → \exdefer{e}$ and $ℰ ⊢ \exdefer{e} → e$ for any
+environment~$ℰ$ and any expression~$e$.
+
+\end{itemize}
+\begin{mathfigure}{operational-semantics}{Operational semantics}
+%
+\begin{gathered}
+%
+\deriv{ℰ ⊢ e₁ → e₁′ \nexthyp ℰ ⊢ e₂ → e₂′}
+      {ℰ ⊢ \{e₁, e₂\} → \{e₁′, e₂′\}}
+\derivlinedone
+\begin{gathered}
+%
+\deriv{ℰ ⊢ e → \{e₁, e₂\}}
+      {ℰ ⊢ \exleft{e} → e₁}
+\derivlinedone
+\deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
+      {ℰ ⊢ \exleft{e} → ∅}
+%
+\end{gathered}
+\morederivs
+\begin{gathered}
+%
+\deriv{ℰ ⊢ e → \{e₁, e₂\}}
+      {ℰ ⊢ \exright{e} → e₂}
+\derivlinedone
+\deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
+      {ℰ ⊢ \exright{e} → ∅}
+%
+\end{gathered}
+\derivlinedone
+\deriv{}
+      {ℰ ⊢ ∅ → ∅}
+\derivlinedone
+\deriv{ℰ ⊢ e → \{e₁, e₂\} \nexthyp e₂ ⊢ e₁ → e′}
+      {ℰ ⊢ \exwithenv{e} → e′}
+\derivlinedone
+\deriv{}
+      {ℰ ⊢ \kwenv → ℰ}
+\derivlinedone
+\deriv{ℰ ⊢ e → ∅}
+      {ℰ ⊢ \exgate{e} → \exleft{\kwenv}}
+\morederivs
+\deriv{ℰ ⊢ e → e′ \nexthyp e′ ≠ ∅}
+      {ℰ ⊢ \exgate{e} → \exright{\kwenv}}
+\derivlinedone
+\deriv{}
+      {ℰ ⊢ \exdefer{e} → e}
+\derivlinedone
+\deriv{ℰ ⊢ e → ∅}
+      {ℰ ⊢ \exabort{e} → ∅}
+\derivlinedone
+\deriv{ℰ ⊢ e → e′}
+      {ℰ ⊢ \extrace{e} → e′}
+\derivlinedone
+%
+\end{gathered}
+%
+\end{mathfigure}
+
+\section{Surface Language}
+
+The surface language is a high-level language, which in particular has
+support for closures. Programs in the surface language are translated to
+the internal language using a process called desugaring. The surface
+language does not have an operational semantics of its own; a surface
+language expression is evaluated by first desugaring it and then
+evaluating the resulting internal language expression. Currently, the
+surface language does not have a type system.
+
+\subsection{Syntax}
 
 Figure~\ref{token-syntax-of-the-surface-language} defines the syntax of
 tokens. Based on that, Figure~\ref{syntax-of-the-surface-language}
@@ -241,52 +396,7 @@ natural”, respectively.
 %      which the ucs package translates into \mid. This is important to
 %      get the proper spacing.
 
-\subsection{Internal Language}
-
-Figure~\ref{token-syntax-of-the-internal-language} defines the syntax of
-tokens. Based on that, Figure~\ref{syntax-of-the-internal-language}
-defines the syntax of the language.
-\begin{mathfigure}{token-syntax-of-the-internal-language}
-                  {Token syntax of the internal language}
-%
-\begin{aligned}
-%
-\Token\internal   & \bnfdef \Keyword\internal ∣ \Symbol\internal     \\
-\Keyword\internal & \bnfdef \kwleft ∣ \kwright ∣ \kwenv ∣ \kwwithenv
-                            ∣ \kwgate ∣ \kwdefer ∣ \kwabort ∣
-                            \kwtrace                                 \\
-\Symbol\internal  & \bnfdef ∅ ∣ {\{} ∣ {\}} ∣ {,} ∣ {(} ∣ {)}
-%
-\end{aligned}
-%
-\end{mathfigure}
-\begin{mathfigure}{syntax-of-the-internal-language}
-                  {Syntax of the internal language}
-%
-\begin{aligned}
-%
-\Prog\internal  & \bnfdef \Expr\internal                              \\
-\Expr\internal  & \bnfdef \Pair\internal ∣ \Left\internal ∣
-                          \Right\internal ∣ \Zero ∣ \Env ∣ \WithEnv ∣
-                          \Gate ∣ \Defer ∣ \Abort ∣ \Trace\internal ∣
-                          (\Expr\internal)                            \\
-\Pair\internal  & \bnfdef \{\Expr\internal, \Expr\internal\}          \\
-\Left\internal  & \bnfdef \exleft{\Expr\internal}                     \\
-\Right\internal & \bnfdef \exright{\Expr\internal}                    \\
-\Zero           & \bnfdef ∅                                           \\
-\WithEnv        & \bnfdef \exwithenv{\Expr\internal}                  \\
-\Env            & \bnfdef \kwenv                                      \\
-\Gate           & \bnfdef \exgate{\Expr\internal}                     \\
-\Defer          & \bnfdef \exdefer{\Expr\internal}                    \\
-\Abort          & \bnfdef \exabort{\Expr\internal}                    \\
-\Trace\internal & \bnfdef \extrace{\Expr\internal}
-%
-\end{aligned}
-%
-\end{mathfigure}
-
-\section{Desugaring}
-\label{desugaring}
+\subsection{Desugaring}
 
 For defining desugaring, we introduce the following special meta-syntax:
 \begin{itemize}
@@ -399,95 +509,6 @@ programs:
 ⌊(e)⌋_Δ                          & = ⌊e⌋_Δ
 %
 \end{aligned}
-%
-\end{mathfigure}
-
-\section{Operational Semantics}
-
-Evaluation of an expression happens in the context of an environment,
-which is an expression itself. The environment can be read using
-$\kwenv$ and set using $\kwwithenv$.
-
-Figure~\ref{operational-semantics} defines a relation ${−} ⊢ {−} → {−} ⊆
-\Expr × \Expr × \Expr$ that constitutes the big-step (evaluation)
-semantics of the internal language. A proposition $ℰ ⊢ e → e′$ is true
-if and only if evaluating the expression~$e$ under the environment~$ℰ$
-may yield the expression~$e′$. The semantics only covers the pure
-aspects of execution. The $\kwtrace$ construct is actually impure, as it
-outputs diagnostic information. Our semantics ignores that, treating any
-expression of the form $\extrace{e}$ like~$e$.
-
-The following things about the big-step semantics should be noted:
-\begin{itemize}
-
-\item
-
-The relation ${−} ⊢ {−} → {−}$ is actually a partial function. This
-means that evaluation is deterministic: it either fails or leads to a
-uniquely defined expression.
-
-\item
-
-Evaluation does not necessarily lead to irreducible expressions. There
-exist environments~$ℰ$ and expressions $e$, $e′$, and~$e″$ for which $ℰ
-⊢ e → e′$ and $ℰ ⊢ e′ → e″$ but $e′ ≠ e″$. For example, $ℰ ⊢
-\exdefer{\exdefer{e}} → \exdefer{e}$ and $ℰ ⊢ \exdefer{e} → e$ for any
-environment~$ℰ$ and any expression~$e$.
-
-\end{itemize}
-\begin{mathfigure}{operational-semantics}{Operational semantics}
-%
-\begin{gathered}
-%
-\deriv{ℰ ⊢ e₁ → e₁′ \nexthyp ℰ ⊢ e₂ → e₂′}
-      {ℰ ⊢ \{e₁, e₂\} → \{e₁′, e₂′\}}
-\derivlinedone
-\begin{gathered}
-%
-\deriv{ℰ ⊢ e → \{e₁, e₂\}}
-      {ℰ ⊢ \exleft{e} → e₁}
-\derivlinedone
-\deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
-      {ℰ ⊢ \exleft{e} → ∅}
-%
-\end{gathered}
-\morederivs
-\begin{gathered}
-%
-\deriv{ℰ ⊢ e → \{e₁, e₂\}}
-      {ℰ ⊢ \exright{e} → e₂}
-\derivlinedone
-\deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
-      {ℰ ⊢ \exright{e} → ∅}
-%
-\end{gathered}
-\derivlinedone
-\deriv{}
-      {ℰ ⊢ ∅ → ∅}
-\derivlinedone
-\deriv{ℰ ⊢ e → \{e₁, e₂\} \nexthyp e₂ ⊢ e₁ → e′}
-      {ℰ ⊢ \exwithenv{e} → e′}
-\derivlinedone
-\deriv{}
-      {ℰ ⊢ \kwenv → ℰ}
-\derivlinedone
-\deriv{ℰ ⊢ e → ∅}
-      {ℰ ⊢ \exgate{e} → \exleft{\kwenv}}
-\morederivs
-\deriv{ℰ ⊢ e → e′ \nexthyp e′ ≠ ∅}
-      {ℰ ⊢ \exgate{e} → \exright{\kwenv}}
-\derivlinedone
-\deriv{}
-      {ℰ ⊢ \exdefer{e} → e}
-\derivlinedone
-\deriv{ℰ ⊢ e → ∅}
-      {ℰ ⊢ \exabort{e} → ∅}
-\derivlinedone
-\deriv{ℰ ⊢ e → e′}
-      {ℰ ⊢ \extrace{e} → e′}
-\derivlinedone
-%
-\end{gathered}
 %
 \end{mathfigure}
 
