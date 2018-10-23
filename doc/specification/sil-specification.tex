@@ -249,29 +249,7 @@ Figure~\ref{operational-semantics} defines a relation ${−} ⊢ {−} → {−}
 \Expr × \Expr × \Expr$ that constitutes the big-step (evaluation)
 semantics of the internal language. A proposition $ℰ ⊢ e → e′$ is true
 if and only if evaluating the expression~$e$ under the environment~$ℰ$
-may yield the expression~$e′$. The semantics only covers the pure
-aspects of execution. The $\kwtrace$ construct is actually impure, as it
-outputs diagnostic information. Our semantics ignores that, treating any
-expression of the form $\extrace{e}$ like~$e$.
-
-The following things about the big-step semantics should be noted:
-\begin{itemize}
-
-\item
-
-The relation ${−} ⊢ {−} → {−}$ is actually a partial function. This
-means that evaluation is deterministic: it either fails or leads to a
-uniquely defined expression.
-
-\item
-
-Evaluation does not necessarily lead to irreducible expressions. There
-exist environments~$ℰ$ and expressions $e$, $e′$, and~$e″$ for which $ℰ
-⊢ e → e′$ and $ℰ ⊢ e′ → e″$ but $e′ ≠ e″$. For example, $ℰ ⊢
-\exdefer{\exdefer{e}} → \exdefer{e}$ and $ℰ ⊢ \exdefer{e} → e$ for any
-environment~$ℰ$ and any expression~$e$.
-
-\end{itemize}
+may yield the expression~$e′$.
 \begin{mathfigure}{operational-semantics}{Operational semantics}
 %
 \begin{gathered}
@@ -327,6 +305,33 @@ environment~$ℰ$ and any expression~$e$.
 \end{gathered}
 %
 \end{mathfigure}
+
+The semantics only covers the pure aspects of execution. The $\kwtrace$
+construct is actually impure, as it outputs diagnostic information. Our
+semantics ignores that, treating any expression of the form
+$\extrace{e}$ like~$e$.
+
+The relation ${−} ⊢ {−} → {−}$ is in fact a partial function. This means
+that evaluation is deterministic: it either fails or leads to a uniquely
+defined expression.
+
+When $\kwenv$ is encountered during evaluation, it is replaced by the
+current environment. Nevertheless, $\kwenv$ may appear in an evaluation
+result, namely when the evaluated expression contains $\kwdefer$ or
+$\kwgate$. This is used to represent functions. The convention is that
+an expression $\exdefer{e}$ or $\exgate{e}$ whose evaluation result
+is~$e₁$ represents the function that maps any~$e₂$ to the~$e′$ for which
+$e₂ ⊢ e₁ → e′$. This means that, for example,
+$\exdefer{\{\exright{\kwenv}, \exleft{\kwenv}\}}$ represents the
+function that swaps the elements of a pair, and $\exgate{∅}$ represents
+the first projection function. Under this convention for representing
+functions, $\kwwithenv$ is function application and $\kwenv$ is the
+current (innermost) argument.
+
+Note that $\kwdefer$ expressions cannot use arguments of surrounding
+function expression, as the only way to refer to function arguments is
+via $\kwenv$, which always denotes the innermost argument. This means
+that the internal language cannot handle closures natively.
 
 \section{Surface Language}
 
