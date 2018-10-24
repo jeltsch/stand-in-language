@@ -121,15 +121,13 @@
 \newnt{Defer}
 \newnt{Abort}
 
-\newcommand{\internal}{_\mathrm{i}}
+\newcommand{\internal}{_{\mathrm{i}}}
 
 \newnt{Type}
 \newnt{TypeVar}
 \newnt{ZeroType}
 \newnt{PairType}
 \newnt{FunType}
-
-\newcommand{\suc}[1]{\hat{n}}
 
 \title{Specification of the Stand-in Language}
 \author{%
@@ -146,12 +144,13 @@
 
 We present a formal specification of the Stand-in Language (SIL) by Sam
 Griffin. Our specification closely resembles the version of the language
-implemented in Commit \texttt{966227a} of the
-\texttt{sfultong/stand-in-language} GitHub repository.
+implemented in Commit \texttt{966227a} of the GitHub repository
+\texttt{sfultong/stand-in-language}.
 
 SIL actually consists of two languages: the surface language and the
 internal language. While the former constitutes the user-facing part,
-the latter is the one for which evaluation is defined.
+the latter is the one for which an operational semantics and a type
+system are defined.
 
 \section{Notation}
 
@@ -159,10 +158,6 @@ Throughout this document, we describe syntax using a variant of
 Backus–Naur form. Our variant uses the following notations, listed here
 in increasing order of precedence:
 \begin{itemize}
-
-\item
-
-Words in italics are nonterminals.
 
 \item
 
@@ -187,13 +182,17 @@ $⟨$~and~$⟩$ delimit subexpressions and are used for overriding default
 precedence.\footnote{We do not use $($ and~$)$ for this purpose, since
 they are part of some of the languages we want to describe.}
 
+\item
+
+Words in italics are nonterminals.
+
 \end{itemize}
 
 We introduce further custom notations for various things unrelated to
 syntax. Since such notations are tied to specific parts of the
 specification, we define them where they are needed.
 
-\section{Internal Language}
+\section{The Internal Language}
 
 The internal language is a low-level language, which in particular has
 no built-in support for closures. It comes with an operational semantics
@@ -210,10 +209,10 @@ defines the syntax of the language.
 \begin{aligned}
 %
 \Token\internal   & \bnfdef \Keyword\internal ∣ \Symbol\internal     \\
-\Keyword\internal & \bnfdef \kwleft ∣ \kwright ∣ \kwenv ∣ \kwwithenv
+\Keyword\internal & \bnfdef \kwleft ∣ \kwright ∣ \kwwithenv ∣ \kwenv
                             ∣ \kwgate ∣ \kwdefer ∣ \kwabort ∣
                             \kwtrace                                 \\
-\Symbol\internal  & \bnfdef ∅ ∣ {\{} ∣ {\}} ∣ {,} ∣ {(} ∣ {)}
+\Symbol\internal  & \bnfdef {\{} ∣ {,} ∣ {\}} ∣ ∅ ∣ {(} ∣ {)}
 %
 \end{aligned}
 %
@@ -254,8 +253,10 @@ $\kwwithenv$ and read using $\kwenv$.
 Figure~\ref{operational-semantics} defines a relation ${−} ⊢ {−} → {−} ⊆
 \Expr × \Expr × \Expr$ that constitutes the big-step (evaluation)
 semantics of the internal language. A proposition $ℰ ⊢ e → e′$ is true
-if and only if evaluating the expression~$e$ under the environment~$ℰ$
-may yield the expression~$e′$.
+if and only if evaluating the expression~$e$ in the environment~$ℰ$ may
+yield the expression~$e′$. The relation ${−} ⊢ {−} → {−}$ is in fact a
+partial function. This means that evaluation is deterministic: it either
+fails or leads to a uniquely defined expression.
 \begin{mathfigure}{operational-semantics}{Operational semantics}
 %
 \begin{gathered}
@@ -317,17 +318,13 @@ construct is actually impure, as it outputs diagnostic information. Our
 semantics ignores that, treating any expression of the form
 $\extrace{e}$ like~$e$.
 
-The relation ${−} ⊢ {−} → {−}$ is in fact a partial function. This means
-that evaluation is deterministic: it either fails or leads to a uniquely
-defined expression.
-
 When $\kwenv$ is encountered during evaluation, it is replaced by the
 current environment. Nevertheless, $\kwenv$ may appear in an evaluation
 result, namely when the evaluated expression contains $\kwdefer$ or
-$\kwgate$. This is used to represent functions. The convention is that
-an expression $\exdefer{e}$ or $\exgate{e}$ whose evaluation result
-is~$e₁$ represents the function that maps any~$e₂$ to the~$e′$ for which
-$e₂ ⊢ e₁ → e′$. This means that, for example,
+$\kwgate$. This feature is used to represent functions. The convention
+is that an expression $\exdefer{e}$ or $\exgate{e}$ whose evaluation
+result is~$e₁$ represents the function that maps any~$e₂$ to the~$e′$
+for which $e₂ ⊢ e₁ → e′$. This means that, for example,
 $\exdefer{\{\exright{\kwenv}, \exleft{\kwenv}\}}$ represents the
 function that swaps the elements of a pair, and $\exgate{∅}$ represents
 the first projection function. Under this convention for representing
@@ -418,15 +415,15 @@ structure than the type.
 %
 \end{mathfigure}
 
-\section{Surface Language}
+\section{The Surface Language}
 
 The surface language is a high-level language, which in particular has
 support for closures. Programs in the surface language are translated to
 the internal language using a process called desugaring. The surface
 language does not have an operational semantics of its own; a surface
 language expression is evaluated by first desugaring it and then
-evaluating the resulting internal language expression. Currently, the
-surface language does not have a type system.
+evaluating the resulting internal expression. Currently, the surface
+language does not have a type system.
 
 \subsection{Syntax}
 
@@ -440,15 +437,15 @@ natural”, respectively.
 %
 \begin{aligned}
 %
-\Token   & \bnfdef \Ident ∣ \Str ∣ \Nat ∣ \Keyword ∣ \Symbol    \\
+\Token   & \bnfdef \Ident ∣ \Str ∣ \Nat ∣ \Keyword ∣ \Symbol       \\
 \Ident   & \bnfdef \Letter⟨\Letter ∣ \Digit ∣ \_ ∣ {′}⟩\many ∖
-                   \Keyword                                     \\
-\Str     & \bnfdef \text{“}\Char\many\text{”}                   \\
-\Nat     & \bnfdef \Digit\some                                  \\
+                   \Keyword                                        \\
+\Str     & \bnfdef \text{“}\Char\many\text{”}                      \\
+\Nat     & \bnfdef \Digit\some                                     \\
 \Keyword & \bnfdef \kwlet ∣ \kwin ∣ \kwif ∣ \kwthen ∣ \kwelse ∣
-                   \kwleft ∣ \kwright ∣ \kwtrace                \\
-\Symbol  & \bnfdef {=} ∣ {:} ∣ {[} ∣ {]} ∣ {\{} ∣ {\}} ∣ {,} ∣
-                   \backslash ∣ \# ∣ {→} ∣ \$ ∣ {(} ∣ {)}
+                   \kwleft ∣ \kwright ∣ \kwtrace                   \\
+\Symbol  & \bnfdef {:} ∣ {=} ∣ \backslash ∣ {→} ∣ \# ∣ {[} ∣ {]} ∣
+                   {,} ∣ \$ ∣ {\{} ∣ {\}} ∣ {(} ∣ {)}
 %
 \end{aligned}
 %
@@ -488,7 +485,7 @@ natural”, respectively.
 
 \subsection{Desugaring}
 
-For defining desugaring, we introduce the following special meta-syntax:
+For defining desugaring, we introduce the following notations:
 \begin{itemize}
 
 \item
@@ -498,27 +495,33 @@ replaced by~$e′$.
 
 \item
 
-$c_\#$ means the natural number literal that represents the code of the
-character~$c$.
+$c_{\#}$ means the natural number literal that represents the code of
+the character~$c$.
 
 \item
 
-$\suc{n}$ means the natural number literal that represents the successor
+$n_{+}$ means the natural number literal that represents the successor
 of~$n$.
 
 \item
 
-$f^n x$ means the n-fold application of~$f$ to~$x$, that is,
+$f^{n} x$ means the n-fold application of~$f$ to~$x$, that is,
 $\exapp{f}{\exapp{…}{\exapp{f}{\exapp{x}}}}$ where $f$ occurs $n$~times.
 
 \end{itemize}
-Furthermore we introduce a helper function~$ρ : \Var\some × \Var →
-\Expr\internal$. A term $ρ(Δ, x)$ yields an internal expression that is
-evaluated to a pair whose first element is the value of~$x$. The
-argument~$Δ$ is called a context. A context is a list of variables that
-are in scope, with variables bound closer to the expression being listed
-later. We write $Δ ⊳ x$ for the context~$Δ$ extended by~$x$. The
-definition of~$ρ$ is as follows:
+
+Desugaring of an expression happens in a context, which is the list of
+variables that are in scope, with variables bound closer to the
+expression being listed later. We write $ε$ for the empty context and $Δ
+⊳ x$ for the context~$Δ$ extended by~$x$. An internal expression
+obtained by desugaring in a context~$Δ$ is supposed to be evaluated in
+the environment $\{e_{n}, \{e_{n - 1}, \{…, \{e₁, ∅\}…\}\}\}$ where
+each~$e_{i}$ is the value of the $i$-th variable in~$Δ$.
+
+We introduce a helper function~$ρ : \Var\some × \Var → \Expr\internal$
+such that $ρ(Δ, x)$ yields an internal expression that is evaluated to a
+pair whose first element is the value of~$x$. The definition of~$ρ$ is
+as follows:
 \begin{equation}
 %
 ρ(Δ ⊳ x, y) = \begin{cases}
@@ -528,15 +531,15 @@ definition of~$ρ$ is as follows:
 %
 \end{equation}
 
-Figure~\ref{desugaring-of-expressions} defines a function $⌊−⌋_− : \Expr
-× \Var\many → \Expr\internal$ that describes desugaring of expressions.
-A term $⌊e⌋_Δ$ gives the internal expression that corresponds to the
-surface expression~$e$ under the context~$Δ$. Based on $⌊−⌋_−$ we define
-a function $⌊−⌋ : \Prog → \Prog\internal$ that describes desugaring of
-programs:
+Figure~\ref{desugaring-of-expressions} defines a function $⌊−⌋_{−} :
+\Expr × \Var\many → \Expr\internal$ that describes desugaring of
+expressions. A term $⌊e⌋_{Δ}$ gives the internal expression that
+corresponds to the surface expression~$e$ in the context~$Δ$. Based on
+$⌊−⌋_{−}$ we define a function $⌊−⌋ : \Prog → \Prog\internal$ that
+describes desugaring of programs:
 \begin{equation}
 %
-⌊p⌋ = ⌊\exlet{p}{\mathit{main}}⌋_ε
+⌊p⌋ = ⌊\exlet{p}{\mathit{main}}⌋_{ε}
 %
 \end{equation}
 \begin{mathfigure}{desugaring-of-expressions}{Desugaring of expressions}
@@ -554,49 +557,53 @@ programs:
                    \}
                },
     \nextline
-    \quad\quad \{⌊e₂⌋_Δ, ⌊e₁⌋_Δ\}
+    \quad\quad \{⌊e₂⌋_{Δ}, ⌊e₁⌋_{Δ}\}
     \nextline
     \quad \}
 }
 %
 \begin{aligned}
 %
-⌊\kwlet \; \kwin \; e⌋_Δ         & = ⌊e⌋_Δ                            \\
-⌊\exlet{x = e′ \; \bar{a}}{e}⌋_Δ & = ⌊
-                                         ⟨\exlet{\bar{a}}{e}⟩
-                                             _{x ↦ e′}
-                                     ⌋_Δ \\
-⌊\exif{e}{e₁}{e₂}⌋_Δ             & = \exwithenv{
-                                         \{
-                                             \exgate{⌊e⌋_Δ},
-                                             \{⌊e₁⌋_Δ, ⌊e₂⌋_Δ\}
-                                         \}
-                                     }                                \\
-⌊\exlam{\bar{x}}{e}⌋_Δ           & = \{
-                                         \exdefer{⌊e⌋_{Δ ∘ \bar{x}}},
-                                         \kwenv
-                                     \}                               \\
-⌊\exclam{\bar{x}}{e}⌋_Δ          & = \{
-                                         \exdefer{⌊e⌋_{\bar{x}}},
-                                         ∅
-                                     \}                               \\
-⌊\exapp{e₁}{e₂}⌋_Δ               & = \exapprhs                        \\
-⌊[]⌋_Δ                           & = ∅                                \\
-⌊[e, l]⌋_Δ                       & = \{⌊e⌋_Δ, ⌊[l]⌋_Δ\}               \\
-⌊\text{“}\,\text{”}⌋_Δ           & = ∅                                \\
-⌊\text{“}c\bar{c}\text{”}⌋_Δ     & = \{
-                                         ⌊c_\#⌋_Δ,
-                                         ⌊\text{“}\bar{c}\text{”}⌋_Δ
-                                     \}  \\
-⌊0⌋_Δ                            & = ∅                                \\
-⌊\suc{n}⌋_Δ                      & = \{⌊n⌋_Δ, ∅\}                     \\
-⌊\${n}⌋_Δ                        & = ⌊\exclam{f \; x}{f^n x}⌋_Δ       \\
-⌊\{e₁, e₂\}⌋_Δ                   & = \{⌊e₁⌋_Δ, ⌊e₂⌋_Δ\}               \\
-⌊\exleft{e}⌋_Δ                   & = \exleft{⌊e⌋_Δ}                   \\
-⌊\exright{e}⌋_Δ                  & = \exright{⌊e⌋_Δ}                  \\
-⌊\extrace{e}⌋_Δ                  & = \extrace{⌊e⌋_Δ}                  \\
-⌊x⌋_Δ                            & = \exleft{ρ(Δ, x)}                 \\
-⌊(e)⌋_Δ                          & = ⌊e⌋_Δ
+⌊\kwlet \; \kwin \; e⌋_{Δ}
+    & = ⌊e⌋_{Δ}                                                   \\
+⌊\exlet{x = e′ : e″ \; \bar{a}}{e}⌋_{Δ}
+     & = ⌊\exlet{x = e′ \; \bar{a}}{e}⌋_{Δ}                       \\
+⌊\exlet{x = e′ \; \bar{a}}{e}⌋_{Δ}
+     & = ⌊⟨\exlet{\bar{a}}{e}⟩_{x ↦ e′}⌋_{Δ}                      \\
+⌊\exif{e}{e₁}{e₂}⌋_{Δ}
+     & = \exwithenv{\{\exgate{⌊e⌋_{Δ}}, \{⌊e₁⌋_{Δ}, ⌊e₂⌋_{Δ}\}\}} \\
+⌊\exlam{\bar{x}}{e}⌋_{Δ}
+     & = \{\exdefer{⌊e⌋_{Δ ∘ \bar{x}}}, \kwenv\}                  \\
+⌊\exclam{\bar{x}}{e}⌋_{Δ}
+     & = \{\exdefer{⌊e⌋_{\bar{x}}}, ∅\}                           \\
+⌊\exapp{e₁}{e₂}⌋_{Δ}
+     & = \exapprhs                                                \\
+⌊[]⌋_{Δ}
+     & = ∅                                                        \\
+⌊[e, l]⌋_{Δ}
+     & = \{⌊e⌋_{Δ}, ⌊[l]⌋_{Δ}\}                                   \\
+⌊\text{“}\,\text{”}⌋_{Δ}
+     & = ∅                                                        \\
+⌊\text{“}c\bar{c}\text{”}⌋_{Δ}
+     & = \{⌊c_{\#}⌋_{Δ}, ⌊\text{“}\bar{c}\text{”}⌋_{Δ}\}          \\
+⌊0⌋_{Δ}
+     & = ∅                                                        \\
+⌊n_{+}⌋_{Δ}
+     & = \{⌊n⌋_{Δ}, ∅\}                                           \\
+⌊\${n}⌋_{Δ}
+     & = ⌊\exclam{f \; x}{f^n x}⌋_{Δ}                             \\
+⌊\{e₁, e₂\}⌋_{Δ}
+     & = \{⌊e₁⌋_{Δ}, ⌊e₂⌋_{Δ}\}                                   \\
+⌊\exleft{e}⌋_{Δ}
+     & = \exleft{⌊e⌋_{Δ}}                                         \\
+⌊\exright{e}⌋_{Δ}
+     & = \exright{⌊e⌋_{Δ}}                                        \\
+⌊\extrace{e}⌋_{Δ}
+     & = \extrace{⌊e⌋_{Δ}}                                        \\
+⌊x⌋_{Δ}
+     & = \exleft{ρ(Δ, x)}                                         \\
+⌊(e)⌋_{Δ}
+     & = ⌊e⌋_{Δ}
 %
 \end{aligned}
 %
