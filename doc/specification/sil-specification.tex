@@ -42,9 +42,9 @@
 
 \newcommand{\bnfdef}{\mathrel{{\mathop:}{\mathop:}{=}}}
 
-\newcommand{\optional}{^?}
-\newcommand{\some}{^+}
-\newcommand{\many}{^*}
+\newcommand{\optional}{^{?}}
+\newcommand{\some}{^{+}}
+\newcommand{\many}{^{*}}
 
 \newcommand{\deriv}[2]{\frac{\;#1\;}{\;#2\;}}
 \newcommand{\derivlinedone}{\\[\topsep]}
@@ -591,7 +591,7 @@ describes desugaring of programs:
 ⌊n_{+}⌋_{Δ}
      & = \{⌊n⌋_{Δ}, ∅\}                                           \\
 ⌊\${n}⌋_{Δ}
-     & = ⌊\exclam{f \; x}{f^n x}⌋_{Δ}                             \\
+     & = ⌊\exclam{f \; x}{f^{n} x}⌋_{Δ}                           \\
 ⌊\{e₁, e₂\}⌋_{Δ}
      & = \{⌊e₁⌋_{Δ}, ⌊e₂⌋_{Δ}\}                                   \\
 ⌊\exleft{e}⌋_{Δ}
