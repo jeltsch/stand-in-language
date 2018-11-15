@@ -24,6 +24,7 @@
 \usepackage[hidelinks]{hyperref}
 
 \usepackage{amsmath}
+\usepackage{amsthm}
 
 \newenvironment{mathfigure}[2]
     {%
@@ -39,6 +40,8 @@
         \label{\figurelabel}
         \end{figure}%
     }
+
+\newtheorem{conjecture}{Conjecture}
 
 \newcommand{\bnfdef}{\mathrel{{\mathop:}{\mathop:}{=}}}
 
@@ -244,12 +247,28 @@ defines the syntax of the language.
 %
 \end{mathfigure}
 
-\subsection{Operational Semantics}
+\subsection{Semantics}
 
-Evaluation of an expression happens in the context of an environment,
-which is an expression itself. The environment can be set using
-$\kwwithenv$ and read using $\kwenv$.
+Common functional programming languages express dependencies on external
+data and function arguments by means of variables. The internal language
+does not have variables technically, but the expression $\kwenv$ can be
+considered a single variable. Following this view, an expression
+$\exdefer{e}$ corresponds to an abstraction (“$λ$-expression”) $λ\kwenv
+. e$. Because such an abstraction binds the only variable that exists,
+the body of a $\kwdefer$ expression cannot refer to variable assignments
+outside the $\kwdefer$ expression. This means that the internal language
+does not support closures natively.
 
+It is customary in the functional programming world to evaluate function
+expressions to abstractions. If we would do the same for the internal
+language, evaluation of any function expression would result in an
+abstraction that binds $\kwenv$, because there is no other variable.
+Since mentioning the bound variable $\kwenv$ would not provide any
+information, we yield only the bodies of the abstractions as evaluation
+results.
+
+Expression evaluation happens in an environment. The environment is an
+evaluated expression that characterizes the value of $\kwenv$.
 Figure~\ref{operational-semantics} defines a relation ${−} ⊢ {−} → {−} ⊆
 \Expr × \Expr × \Expr$ that constitutes the big-step (evaluation)
 semantics of the internal language. A proposition $ℰ ⊢ e → e′$ is true
@@ -320,35 +339,37 @@ construct is actually impure, as it outputs diagnostic information. Our
 semantics ignores that, treating any expression of the form
 $\extrace{e}$ like~$e$.
 
-When $\kwenv$ is encountered during evaluation, it is replaced by the
-current environment. Nevertheless, $\kwenv$ may appear in an evaluation
-result, namely when the evaluated expression contains $\kwdefer$ or
-$\kwgate$. This feature is used to represent functions. The convention
-is that an expression $\exdefer{e}$ or $\exgate{e}$ whose evaluation
-result is~$e₁$ represents the function that maps any~$e₂$ to the~$e′$
-for which $e₂ ⊢ e₁ → e′$. This means that, for example,
-$\exdefer{\{\exright{\kwenv}, \exleft{\kwenv}\}}$ represents the
-function that swaps the elements of a pair, and $\exgate{∅}$ represents
-the first projection function. Under this convention for representing
-functions, $\kwwithenv$ is function application and $\kwenv$ is the
-current (innermost) argument.
-
-Note that $\kwdefer$ expressions cannot use arguments of surrounding
-function expression, as the only way to refer to function arguments is
-via $\kwenv$, which always denotes the innermost argument. This means
-that the internal language cannot handle closures natively.
-
 \subsection{Type System}
 
-Figure~\ref{type-syntax} defines the syntax of types. Based on that,
+The type system of the internal language is special in two ways:
+\begin{itemize}
+
+\item
+
+There are two typing relations, one for unevaluated and one for
+evaluated expressions. This is necessary, because function expressions
+are evaluated to expressions that do not describe the functions
+themselves but their results. If we would use the same typing relation
+for unevaluated and evaluated expressions, the type of an expression
+could change through evaluation.
+
+\item
+
+The type system does not distinguish between different types of nested
+pairs. Each nested pair type contains all nested pairs.
+
+\end{itemize}
+
+Figure~\ref{type-syntax} defines the syntax of types, and
 Figure~\ref{equivalence-of-types} defines an equivalence relation on
-types that identifies all nested pair types. Finally,
-Figure~\ref{typing-rules} defines the typing relation ${−} ⊢ {−} : {−} ⊆
-\Type × \Expr × \Type$. A proposition $𝒯 ⊢ e : τ$ is true if and only if
-the expression~$e$ has type~$τ$ provided that the environment has
-type~$𝒯$. Note that the last typing rule establishes that each nested
-pair type contains all nested pairs, even those that have a different
-structure than the type.
+types that identifies all nested pair types. Based on that,
+Figure~\ref{typing-rules-for-unevaluated-expressions} defines the typing
+relation ${−} ⊢ {−} : {−} ⊆ \Type × \Expr × \Type$ for unevaluated
+expressions. A proposition $𝒯 ⊢ e : τ$ is true if and only if the
+unevaluated expression~$e$ has type~$τ$ provided that the environment
+has type~$𝒯$. Finally,
+Figure~\ref{typing-rules-for-evaluated-expressions} defines the typing
+relation ${−} : {−} ⊆ \Expr × \Type$ for evaluated expressions.
 \begin{mathfigure}{type-syntax}{Type syntax}
 %
 \begin{aligned}
@@ -386,7 +407,8 @@ structure than the type.
 \end{gathered}
 %
 \end{mathfigure}
-\begin{mathfigure}{typing-rules}{Typing rules}
+\begin{mathfigure}{typing-rules-for-unevaluated-expressions}
+                  {Typing rules for unevaluated expressions}
 %
 \begin{gathered}
 %
@@ -416,6 +438,29 @@ structure than the type.
 \end{gathered}
 %
 \end{mathfigure}
+\begin{mathfigure}{typing-rules-for-evaluated-expressions}
+                  {Typing rules for evaluated expressions}
+%
+\begin{gathered}
+%
+\deriv{e₁ : τ₁ \nexthyp e₂ : τ₂}{\{e₁, e₂\} : \{τ₁, τ₂\}}
+\derivlinedone
+\deriv{}{∅ : ∅}
+\derivlinedone
+\deriv{𝒯 ⊢ e : τ}{e : 𝒯 ⇒ τ}
+\derivlinedone
+\deriv{τ₁ ≈ τ₂ \nexthyp e : τ₁}{e : τ₂}
+\derivlinedone
+%
+\end{gathered}
+%
+\end{mathfigure}
+
+\begin{conjecture}[Type preservation]
+
+If $ℰ : 𝒯$, $𝒯 ⊢ e : τ$, and $ℰ ⊢ e → e′$, then $e′ : τ$.
+
+\end{conjecture}
 
 \section{The Surface Language}
 
