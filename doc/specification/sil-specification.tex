@@ -254,9 +254,7 @@ Figure~\ref{operational-semantics} defines a relation ${−} ⊢ {−} → {−}
 \Expr × \Expr × \Expr$ that constitutes the big-step (evaluation)
 semantics of the internal language. A proposition $ℰ ⊢ e → e′$ is true
 if and only if evaluating the expression~$e$ in the environment~$ℰ$ may
-yield the expression~$e′$. The relation ${−} ⊢ {−} → {−}$ is in fact a
-partial function. This means that evaluation is deterministic: it either
-fails or leads to a uniquely defined expression.
+yield the expression~$e′$.
 \begin{mathfigure}{operational-semantics}{Operational semantics}
 %
 \begin{gathered}
@@ -312,6 +310,10 @@ fails or leads to a uniquely defined expression.
 \end{gathered}
 %
 \end{mathfigure}
+
+The relation ${−} ⊢ {−} → {−}$ is in fact a partial function. This means
+that evaluation is deterministic: it either fails or leads to a uniquely
+defined expression.
 
 The semantics only covers the pure aspects of execution. The $\kwtrace$
 construct is actually impure, as it outputs diagnostic information. Our
