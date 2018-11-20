@@ -201,7 +201,7 @@ least one occurrence, and arbitrary repetition, respectively.
 
 $⟨$~and~$⟩$ delimit subexpressions and are used for overriding default
 precedence.\footnote{We do not use $($ and~$)$ for this purpose, since
-they are part of the languages we want to describe.}
+they are part of some of the languages we want to describe.}
 
 \item
 
@@ -234,7 +234,7 @@ defines the syntax of the language.
 \Keyword\internal & \bnfdef \kwleft ∣ \kwright ∣ \kwwithenv ∣ \kwenv
                             ∣ \kwgate ∣ \kwdefer ∣ \kwabort ∣
                             \kwtrace                                 \\
-\Symbol\internal  & \bnfdef {\{} ∣ {,} ∣ {\}} ∣ ∅ ∣ {(} ∣ {)}
+\Symbol\internal  & \bnfdef {\{} ∣ {,} ∣ {\}} ∣ ∅
 %
 \end{aligned}
 %
@@ -249,8 +249,7 @@ defines the syntax of the language.
                             \Right\internal ∣ \Zero\internal ∣
                             \WithEnv\internal ∣ \Env\internal ∣
                             \Gate\internal ∣ \Defer\internal ∣
-                            \Abort\internal ∣ \Trace\internal ∣
-                            (\Expr\internal)                    \\
+                            \Abort\internal ∣ \Trace\internal   \\
 \Pair\internal    & \bnfdef \{\Expr\internal, \Expr\internal\}  \\
 \Left\internal    & \bnfdef \exleft{\Expr\internal}             \\
 \Right\internal   & \bnfdef \exright{\Expr\internal}            \\
