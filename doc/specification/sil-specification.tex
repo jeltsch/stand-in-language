@@ -163,12 +163,17 @@ Griffin. Our specification closely resembles the version of the language
 implemented in Commit \texttt{966227a} of the GitHub repository
 \texttt{sfultong/stand-in-language}.
 
-SIL actually consists of two languages: the surface language and the
-internal language. While the former constitutes the user-facing part,
-the latter is the one for which an operational semantics and a type
-system are defined.
+We start our exposition by introducing some notation in
+Section~\ref{notation}. Afterwards we provide the actual language
+specification. SIL really consists of two languages: the internal
+language and the surface language. While the former is the one for which
+an operational semantics and a type system are defined, the latter
+constitutes the user-facing part. We discuss the internal language in
+Section~\ref{the-internal-language} and the surface language in
+Section~\ref{the-surface-language}.
 
 \section{Notation}
+\label{notation}
 
 Throughout this document, we describe syntax using a variant of
 Backus–Naur form. Our variant uses the following notations, listed here
@@ -209,6 +214,7 @@ syntax. Since such notations are tied to specific parts of the
 specification, we define them where they are needed.
 
 \section{The Internal Language}
+\label{the-internal-language}
 
 The internal language is a low-level language, which in particular has
 no built-in support for closures. It comes with an operational semantics
@@ -476,6 +482,7 @@ If $ℰ : 𝒯$, $𝒯 ⊢ e : τ$, and $ℰ ⊢ e → e′$, then $e′ : τ$.
 \end{conjecture}
 
 \section{The Surface Language}
+\label{the-surface-language}
 
 The surface language is a high-level language, which in particular has
 support for closures. Programs in the surface language are translated to
