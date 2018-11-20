@@ -278,12 +278,13 @@ outside the $\kwdefer$ expression. This means that the internal language
 does not support closures natively.
 
 It is customary in the functional programming world to evaluate function
-expressions to abstractions. If we would do the same for the internal
-language, evaluation of any function expression would result in an
-abstraction that binds $\kwenv$, because there is no other variable.
-Since mentioning the bound variable $\kwenv$ would not provide any
-information, we yield only the bodies of the abstractions as evaluation
-results.
+expressions to abstractions. In our context, where $\kwenv$ is the only
+variable, this would always lead to abstractions that bind $\kwenv$.
+Since such abstractions correspond to $\kwdefer$ expressions, we could
+use these as the evaluation results of function expressions. However, we
+deviate from this approach slightly in order to conform to the
+implementation. Instead of yielding an expression $\exdefer{e}$, we just
+yield its body~$e$.
 
 Expression evaluation happens in an environment. The environment is an
 evaluated expression that characterizes the value of $\kwenv$.
