@@ -170,7 +170,10 @@ language and the surface language. While the former is the one for which
 an operational semantics and a type system are defined, the latter
 constitutes the user-facing part. We discuss the internal language in
 Section~\ref{the-internal-language} and the surface language in
-Section~\ref{the-surface-language}.
+Section~\ref{the-surface-language}. In an
+\hyperref[potential-problems]{appendix}, we state some potential
+problems with the current language design and discuss possible solutions
+to these problems.
 
 \section{Notation}
 \label{notation}
@@ -266,6 +269,7 @@ defines the syntax of the language.
 \end{mathfigure}
 
 \subsection{Semantics}
+\label{internal-language-semantics}
 
 Common functional programming languages express dependencies on external
 data and function arguments by means of variables. The internal language
@@ -671,5 +675,105 @@ describes desugaring of programs:
 \end{aligned}
 %
 \end{mathfigure}
+
+\appendix
+
+\section{Potential Problems}
+\label{potential-problems}
+
+There are some potential problems with the described version of SIL. We
+discuss these problems and suggest a solution for one of them.
+
+\subsection{Evaluation of Function Expressions}
+
+As discussed in Subsection~\ref{internal-language-semantics}, a function
+expression~$e$ is evaluated to an expression~$e′$ such that
+$\exdefer{e′}$ denotes the same function as~$e$. This design decision
+has some unfortunate consequences:
+\begin{itemize}
+
+\item
+
+The meaning of an expression may differ depending on whether it is
+considered unevaluated or evaluated, and in the evaluated case the
+meaning is typically not unique. For example, when seen as unevaluated,
+$\{∅, ∅\}$ denotes the pair of empty tuples. However, $\{∅, ∅\}$ is the
+result of evaluating any of the expressions~$e_{i}$ defined as follows:
+\begin{align}
+e₁ & = \{∅, ∅\}                     \\
+e₂ & = \{\exdefer{∅}, ∅\}           \\
+e₃ & = \{∅, \exdefer{∅}\}           \\
+e₄ & = \{\exdefer{∅}, \exdefer{∅}\} \\
+e₅ & = \exdefer{\{∅, ∅\}}
+\end{align}
+Therefore, when seen as evaluated, $\{∅, ∅\}$ can have any of the
+meanings that the~$e_{i}$ have as unevaluated expressions.
+
+\item
+
+As a consequence of the previous point, we need separate typing
+relations for evaluated and unevaluated expressions.
+
+\end{itemize}
+
+To make the specification simpler and bring it into line with common
+practice, we suggest to change the operational semantics such that the
+evaluation results of function expressions are expressions $\exdefer{e}$
+instead of just their bodies~$e$. This can be achieved by replacing the
+evaluation rules for $\kwwithenv$, $\kwgate$, and $\kwdefer$ with the
+ones shown in
+Figure~\ref{improved-evaluation-rules-concerning-function-expressions}.
+This modification should not change the time and space complexity of
+evaluation. With the updated semantics we do not need a separate typing
+relation for evaluated expressions anymore: an evaluated expression~$e$
+has a type~$τ$ if and only if $𝒯 ⊢ e : τ$ is true for any type~$𝒯$, in
+which case it is true for \emph{every} type~$𝒯$.
+\begin{mathfigure}
+      {improved-evaluation-rules-concerning-function-expressions}
+      {Improved evaluation rules concerning function expressions}
+%
+\begin{gathered}
+%
+\deriv{ℰ ⊢ e → \{\exdefer{e₁}, e₂\} \nexthyp e₂ ⊢ e₁ → e′}
+      {ℰ ⊢ \exwithenv{e} → e′}
+\derivlinedone
+\deriv{ℰ ⊢ e → ∅}
+      {ℰ ⊢ \exgate{e} → \exdefer{\exleft{\kwenv}}}
+\morederivs
+\deriv{ℰ ⊢ e → e′ \nexthyp e′ ≠ ∅}
+      {ℰ ⊢ \exgate{e} → \exdefer{\exright{\kwenv}}}
+\derivlinedone
+\deriv{}
+      {ℰ ⊢ \exdefer{e} → \exdefer{e}}
+%
+\end{gathered}
+%
+\end{mathfigure}
+
+\subsection{Expressivity}
+
+It looks like SIL programs cannot use any recursion scheme that goes
+beyond primitive recursion. The SIL prelude is supposed to provide
+several functions that actually need more powerful recursion schemes.
+They are approximated using primitive recursion, effectively by starting
+with a generally recursive implementation and then placing an upper
+bound on the recursion depth. This makes code that uses these functions
+difficult to write and reason about.
+
+\subsection{Efficiency}
+
+The two representations of natural numbers (nested pairs and church
+encodings) and the representation of environments (nested pairs) are
+space and time inefficient without optimization. Since these
+representations are on a considerably lower level than the things they
+represent, it is probably difficult to rectify their inefficiencies
+using domain-specific optimizations.
+
+\subsection{Precision of Types}
+
+In the internal language all nested pairs have the same type. As a
+result, all tuple representations of natural numbers have the same type,
+which seems sensible. However, in other situations valuable type
+information may get lost.
 
 \end{document}
