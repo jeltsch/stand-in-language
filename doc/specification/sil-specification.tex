@@ -63,7 +63,7 @@
 \newcommand{\many}{^{*}}
 
 \newcommand{\deriv}[2]{\frac{\;#1\;}{\;#2\;}}
-\newcommand{\derivlinedone}{\\[\topsep]}
+\newcommand{\derivlinedone}{\\[1.5ex]}
 \newcommand{\morederivs}{\qquad}
 \newcommand{\nexthyp}{\quad}
 
@@ -343,7 +343,6 @@ yield the expression~$e′$.
 \derivlinedone
 \deriv{ℰ ⊢ e → e′}
       {ℰ ⊢ \extrace{e} → e′}
-\derivlinedone
 %
 \end{gathered}
 %
@@ -421,7 +420,6 @@ relation ${−} : {−} ⊆ \Expr × \Type$ for evaluated expressions.
 \deriv{τ₁ ≈ τ₂}{τ₂ ≈ τ₁}
 \morederivs
 \deriv{τ₁ ≈ τ₂ \nexthyp τ₂ ≈ τ₃}{τ₁ ≈ τ₃}
-\derivlinedone
 %
 \end{gathered}
 %
@@ -452,7 +450,6 @@ relation ${−} : {−} ⊆ \Expr × \Type$ for evaluated expressions.
 \deriv{𝒯 ⊢ e : τ}{𝒯 ⊢ \extrace{e} : τ}
 \derivlinedone
 \deriv{τ₁ ≈ τ₂ \nexthyp 𝒯 ⊢ e : τ₁}{𝒯 ⊢ e : τ₂}
-\derivlinedone
 %
 \end{gathered}
 %
@@ -469,7 +466,6 @@ relation ${−} : {−} ⊆ \Expr × \Type$ for evaluated expressions.
 \deriv{𝒯 ⊢ e : τ}{e : 𝒯 ⇒ τ}
 \derivlinedone
 \deriv{τ₁ ≈ τ₂ \nexthyp e : τ₁}{e : τ₂}
-\derivlinedone
 %
 \end{gathered}
 %
