@@ -102,20 +102,38 @@
 \newcommand{\newnt}[1]
            {\expandafter\newcommand\csname#1\endcsname{\mathit{#1}}}
 
-\newnt{Char}
-\newnt{Letter}
-\newnt{Digit}
-
 \newnt{Token}
-\newnt{Ident}
-\newnt{Str}
-\newnt{Nat}
 \newnt{Keyword}
 \newnt{Symbol}
 
 \newnt{Prog}
-\newnt{Assign}
 \newnt{Expr}
+\newnt{Pair}
+\newnt{Left}
+\newnt{Right}
+\newnt{Zero}
+\newnt{WithEnv}
+\newnt{Env}
+\newnt{Gate}
+\newnt{Defer}
+\newnt{Abort}
+\newnt{Trace}
+
+\newnt{Type}
+\newnt{FunType}
+\newnt{PairType}
+\newnt{ZeroType}
+\newnt{TypeVar}
+
+\newnt{Char}
+\newnt{Letter}
+\newnt{Digit}
+
+\newnt{Ident}
+\newnt{Str}
+\newnt{Nat}
+
+\newnt{Assign}
 \newnt{Let}
 \newnt{If}
 \newnt{Lam}
@@ -124,26 +142,9 @@
 \newnt{List}
 \newnt{TNat}
 \newnt{FNat}
-\newnt{Pair}
-\newnt{Left}
-\newnt{Right}
-\newnt{Trace}
 \newnt{Var}
 
-\newnt{Zero}
-\newnt{Env}
-\newnt{WithEnv}
-\newnt{Gate}
-\newnt{Defer}
-\newnt{Abort}
-
 \newcommand{\internal}{_{\mathrm{i}}}
-
-\newnt{Type}
-\newnt{TypeVar}
-\newnt{ZeroType}
-\newnt{PairType}
-\newnt{FunType}
 
 \title{Specification of the Stand-in Language}
 \author{%
