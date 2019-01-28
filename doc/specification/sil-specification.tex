@@ -70,20 +70,20 @@
 \newcommand{\newkw}[1]
            {\expandafter\newcommand\csname kw#1\endcsname{\mathbf{#1}}}
 
+\newkw{left}
+\newkw{right}
+\newkw{withenv}
+\newkw{env}
+\newkw{gate}
+\newkw{defer}
+\newkw{abort}
+\newkw{trace}
+
 \newkw{let}
 \newkw{in}
 \newkw{if}
 \newkw{then}
 \newkw{else}
-\newkw{left}
-\newkw{right}
-\newkw{trace}
-
-\newkw{env}
-\newkw{withenv}
-\newkw{gate}
-\newkw{defer}
-\newkw{abort}
 
 \newcommand{\exlet}[2]{\kwlet \; #1 \; \kwin \; #2}
 \newcommand{\exif}[3]{\kwif \; #1 \; \kwthen \; #2 \; \kwelse \; #3}
