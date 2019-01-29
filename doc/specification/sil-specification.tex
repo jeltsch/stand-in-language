@@ -119,6 +119,8 @@
 \newnt{Abort}
 \newnt{Trace}
 
+\newnt{Value}
+
 \newnt{Type}
 \newnt{FunType}
 \newnt{PairType}
@@ -282,45 +284,42 @@ the body of a $\kwdefer$ expression cannot refer to variable assignments
 outside the $\kwdefer$ expression. This means that the internal language
 does not support closures natively.
 
-It is customary in the functional programming world to evaluate function
-expressions to abstractions. In our context, where $\kwenv$ is the only
-variable, this would always lead to abstractions that bind $\kwenv$.
-Since such abstractions correspond to $\kwdefer$ expressions, we could
-use these as the evaluation results of function expressions. However, we
-deviate from this approach slightly in order to conform to the
-implementation. Instead of yielding an expression $\exdefer{e}$, we just
-yield its body~$e$.
-
-Expression evaluation happens in an environment. The environment is an
-evaluated expression that characterizes the value of $\kwenv$.
-Figure~\ref{operational-semantics} defines a relation ${−} ⊢ {−} → {−} ⊆
-\Expr × \Expr × \Expr$ that constitutes the big-step (evaluation)
-semantics of the internal language. A proposition $ℰ ⊢ e → e′$ is true
-if and only if evaluating the expression~$e$ in the environment~$ℰ$ may
-yield the expression~$e′$.
+Evaluation turns arbitrary expressions into values. The syntax of values
+is given by the following grammar:
+\begin{equation*}
+%
+\Value \bnfdef \{\Value, \Value\} ∣ ∅ ∣ \exdefer{\Value}
+%
+\end{equation*}
+Evaluation happens in an environment, which is the value that is used as
+the evaluation result of $\kwenv$. Figure~\ref{operational-semantics}
+defines a relation ${−} ⊢ {−} → {−} ⊆ \Value × \Expr × \Value$ that
+constitutes the big-step (evaluation) semantics of the internal
+language. A proposition $ℰ ⊢ e → v$ is true if and only if evaluating
+the expression~$e$ in the environment~$ℰ$ may yield the value~$v$.
 \begin{mathfigure}{operational-semantics}{Operational semantics}
 %
 \begin{gathered}
 %
-\deriv{ℰ ⊢ e₁ → e₁′ \nexthyp ℰ ⊢ e₂ → e₂′}
-      {ℰ ⊢ \{e₁, e₂\} → \{e₁′, e₂′\}}
+\deriv{ℰ ⊢ e₁ → v₁ \nexthyp ℰ ⊢ e₂ → v₂}
+      {ℰ ⊢ \{e₁, e₂\} → \{v₁, v₂\}}
 \derivlinedone
 \begin{gathered}
 %
-\deriv{ℰ ⊢ e → \{e₁, e₂\}}
-      {ℰ ⊢ \exleft{e} → e₁}
+\deriv{ℰ ⊢ e → \{v₁, v₂\}}
+      {ℰ ⊢ \exleft{e} → v₁}
 \derivlinedone
-\deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
+\deriv{ℰ ⊢ e → v \nexthyp ∀v₁ \; v₂ . v ≠ \{v₁, v₂\}}
       {ℰ ⊢ \exleft{e} → ∅}
 %
 \end{gathered}
 \morederivs
 \begin{gathered}
 %
-\deriv{ℰ ⊢ e → \{e₁, e₂\}}
-      {ℰ ⊢ \exright{e} → e₂}
+\deriv{ℰ ⊢ e → \{v₁, v₂\}}
+      {ℰ ⊢ \exright{e} → v₂}
 \derivlinedone
-\deriv{ℰ ⊢ e → e′ \nexthyp ∀e₁ \; e₂ . e′≠ \{e₁, e₂\}}
+\deriv{ℰ ⊢ e → v \nexthyp ∀v₁ \; v₂ . v ≠ \{v₁, v₂\}}
       {ℰ ⊢ \exright{e} → ∅}
 %
 \end{gathered}
@@ -328,26 +327,26 @@ yield the expression~$e′$.
 \deriv{}
       {ℰ ⊢ ∅ → ∅}
 \derivlinedone
-\deriv{ℰ ⊢ e → \{e₁, e₂\} \nexthyp e₂ ⊢ e₁ → e′}
-      {ℰ ⊢ \exwithenv{e} → e′}
+\deriv{ℰ ⊢ e → \{\exdefer{e′}, v\} \nexthyp v ⊢ e′ → v′}
+      {ℰ ⊢ \exwithenv{e} → v′}
 \derivlinedone
 \deriv{}
       {ℰ ⊢ \kwenv → ℰ}
 \derivlinedone
 \deriv{ℰ ⊢ e → ∅}
-      {ℰ ⊢ \exgate{e} → \exleft{\kwenv}}
+      {ℰ ⊢ \exgate{e} → \exdefer{\exleft{\kwenv}}}
 \morederivs
-\deriv{ℰ ⊢ e → e′ \nexthyp e′ ≠ ∅}
-      {ℰ ⊢ \exgate{e} → \exright{\kwenv}}
+\deriv{ℰ ⊢ e → v \nexthyp v ≠ ∅}
+      {ℰ ⊢ \exgate{e} → \exdefer{\exright{\kwenv}}}
 \derivlinedone
 \deriv{}
-      {ℰ ⊢ \exdefer{e} → e}
+      {ℰ ⊢ \exdefer{e} → \exdefer{e}}
 \derivlinedone
 \deriv{ℰ ⊢ e → ∅}
       {ℰ ⊢ \exabort{e} → ∅}
 \derivlinedone
-\deriv{ℰ ⊢ e → e′}
-      {ℰ ⊢ \extrace{e} → e′}
+\deriv{ℰ ⊢ e → v}
+      {ℰ ⊢ \extrace{e} → v}
 %
 \end{gathered}
 %
@@ -355,7 +354,7 @@ yield the expression~$e′$.
 
 The relation ${−} ⊢ {−} → {−}$ is in fact a partial function. This means
 that evaluation is deterministic: it either fails or leads to a uniquely
-defined expression.
+defined value.
 
 The semantics only covers the pure aspects of execution. The $\kwtrace$
 construct is actually impure, as it outputs diagnostic information. Our
@@ -364,35 +363,17 @@ $\extrace{e}$ like~$e$.
 
 \subsection{Type System}
 
-The type system of the internal language is special in two ways:
-\begin{itemize}
-
-\item
-
-There are two typing relations, one for unevaluated and one for
-evaluated expressions. This is necessary, because function expressions
-are evaluated to expressions that do not describe the functions
-themselves but their results. If we would use the same typing relation
-for unevaluated and evaluated expressions, the type of an expression
-could change through evaluation.
-
-\item
-
-The type system does not distinguish between different types of nested
-pairs. Each nested pair type contains all nested pairs.
-
-\end{itemize}
+The type system of the internal language does not distinguish between
+different types of nested pairs. Instead it considers any nested pair to
+be an inhabitant of any nested pair type.
 
 Figure~\ref{type-syntax} defines the syntax of types, and
 Figure~\ref{equivalence-of-types} defines an equivalence relation on
 types that identifies all nested pair types. Based on that,
 Figure~\ref{typing-rules-for-unevaluated-expressions} defines the typing
-relation ${−} ⊢ {−} : {−} ⊆ \Type × \Expr × \Type$ for unevaluated
-expressions. A proposition $𝒯 ⊢ e : τ$ is true if and only if the
-unevaluated expression~$e$ has type~$τ$ provided that the environment
-has type~$𝒯$. Finally,
-Figure~\ref{typing-rules-for-evaluated-expressions} defines the typing
-relation ${−} : {−} ⊆ \Expr × \Type$ for evaluated expressions.
+relation ${−} ⊢ {−} : {−} ⊆ \Type × \Expr × \Type$. A proposition $𝒯 ⊢ e
+: τ$ is true if and only if the expression~$e$ has type~$τ$ provided
+that the environment has type~$𝒯$.
 \begin{mathfigure}{type-syntax}{Type syntax}
 %
 \begin{aligned}
@@ -478,7 +459,8 @@ relation ${−} : {−} ⊆ \Expr × \Type$ for evaluated expressions.
 
 \begin{conjecture}[Type preservation]
 
-If $ℰ : 𝒯$, $𝒯 ⊢ e : τ$, and $ℰ ⊢ e → e′$, then $e′ : τ$.
+If $ℰ : 𝒯$, $𝒯 ⊢ e : τ$, and $ℰ ⊢ e → v$, then $𝒯′ ⊢ v : τ$ for any
+type~$𝒯'$.
 
 \end{conjecture}
 
@@ -682,74 +664,8 @@ describes desugaring of programs:
 \section{Potential Problems}
 \label{potential-problems}
 
-There are some potential problems with the described version of SIL. We
-discuss these problems and suggest a solution for one of them.
-
-\subsection{Evaluation of Function Expressions}
-
-As discussed in Subsection~\ref{internal-language-semantics}, a function
-expression~$e$ is evaluated to an expression~$e′$ such that
-$\exdefer{e′}$ denotes the same function as~$e$. This design decision
-has some unfortunate consequences:
-\begin{itemize}
-
-\item
-
-The meaning of an expression may differ depending on whether it is
-considered unevaluated or evaluated, and in the evaluated case the
-meaning is typically not unique. For example, when seen as unevaluated,
-$\{∅, ∅\}$ denotes the pair of empty tuples. However, $\{∅, ∅\}$ is the
-result of evaluating any of the expressions~$e_{i}$ defined as follows:
-\begin{align}
-e₁ & = \{∅, ∅\}                     \\
-e₂ & = \{\exdefer{∅}, ∅\}           \\
-e₃ & = \{∅, \exdefer{∅}\}           \\
-e₄ & = \{\exdefer{∅}, \exdefer{∅}\} \\
-e₅ & = \exdefer{\{∅, ∅\}}
-\end{align}
-Therefore, when seen as evaluated, $\{∅, ∅\}$ can have any of the
-meanings that the~$e_{i}$ have as unevaluated expressions.
-
-\item
-
-As a consequence of the previous point, we need separate typing
-relations for evaluated and unevaluated expressions.
-
-\end{itemize}
-
-To make the specification simpler and bring it into line with common
-practice, we suggest to change the operational semantics such that the
-evaluation results of function expressions are expressions $\exdefer{e}$
-instead of just their bodies~$e$. This can be achieved by replacing the
-evaluation rules for $\kwwithenv$, $\kwgate$, and $\kwdefer$ with the
-ones shown in
-Figure~\ref{improved-evaluation-rules-concerning-function-expressions}.
-This modification should not change the time and space complexity of
-evaluation. With the updated semantics we do not need a separate typing
-relation for evaluated expressions anymore: an evaluated expression~$e$
-has a type~$τ$ if and only if $𝒯 ⊢ e : τ$ is true for any type~$𝒯$, in
-which case it is true for \emph{every} type~$𝒯$.
-\begin{mathfigure}
-      {improved-evaluation-rules-concerning-function-expressions}
-      {Improved evaluation rules concerning function expressions}
-%
-\begin{gathered}
-%
-\deriv{ℰ ⊢ e → \{\exdefer{e₁}, e₂\} \nexthyp e₂ ⊢ e₁ → e′}
-      {ℰ ⊢ \exwithenv{e} → e′}
-\derivlinedone
-\deriv{ℰ ⊢ e → ∅}
-      {ℰ ⊢ \exgate{e} → \exdefer{\exleft{\kwenv}}}
-\morederivs
-\deriv{ℰ ⊢ e → e′ \nexthyp e′ ≠ ∅}
-      {ℰ ⊢ \exgate{e} → \exdefer{\exright{\kwenv}}}
-\derivlinedone
-\deriv{}
-      {ℰ ⊢ \exdefer{e} → \exdefer{e}}
-%
-\end{gathered}
-%
-\end{mathfigure}
+There are some potential problems with the described version of SIL,
+which we describe in the following sections.
 
 \subsection{Expressivity}
 
